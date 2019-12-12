@@ -16,7 +16,7 @@ Setup python environment then run pip install -r requirements.txt
 To manage experiment configurations we use
 https://github.com/google/gin-config
 
-##E-level data sets
+## E-level data sets
 
 ### Dataset 1
 - Dataset 1: Text classification task. The mac and windows subsets from the 20 newsgroups dataset, 
