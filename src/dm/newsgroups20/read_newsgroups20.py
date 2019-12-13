@@ -15,6 +15,12 @@ CATEGORY_COMP_WINDOWS_X = 'comp.windows.x'
 CATEGORY_COMP_SYS_MAC_HARDWARE = 'comp.sys.mac.hardware'
 CATEGORY_COMP_OS_MS_WINDOWS_MISC = 'comp.os.ms-windows.misc'
 
+"""
+Helper class for obtaining and transforming newsgroup 20 data points.
+There is no explicit support for visualization as it is all text data.
+Some helper functions for going from document, to vector, to category etc are missing.
+Additionally depending on algorithm support for splits and shuffling needs to be implemented.
+"""
 class NewsGroupDataset:
     @gin.configurable
     def __init__(self, shuffle=True, random_state=42, categories=[CATEGORY_COMP_WINDOWS_X, CATEGORY_COMP_SYS_MAC_HARDWARE, CATEGORY_COMP_OS_MS_WINDOWS_MISC]):
@@ -36,7 +42,7 @@ class NewsGroupDataset:
         vectorizer = TfidfVectorizer(min_df=10)
         vectors = vectorizer.fit_transform(self.data)
         self.vectors = vectors
-        
+
     """
     Returns the full data set
     """
