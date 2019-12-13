@@ -11,17 +11,18 @@ from utils import LINEAR
 import numpy as np
 from scipy.optimize import minimize
 
+
 @gin.configurable
 class SVM(object):
     """Support vector machine with various kernels."""
 
     def __init__(self):
-        super(SVM,self).__init__()
-        self.kernel 	= self.linear_kernel
-		self.data_in 	= False
-		self.data_out 	= False
-		self.dataset1 	= False
-		self.dataset2 	= False
+		super(SVM, self).__init__()
+		self.kernel = self.linear_kernel
+		self.data_in = False
+		self.data_out = False
+		self.dataset1 = False
+		self.dataset2 = False
 		self.solution_found = False
 
 
@@ -98,7 +99,7 @@ class SVM(object):
 
 		else:
 			print("No solution found.")
-
+			
 	def calculate_P(self):
 		#Check if the length is correct
 		#Pre-calculate P in order to optimise the calculations later
