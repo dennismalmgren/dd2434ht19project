@@ -21,9 +21,9 @@ There is no explicit support for visualization as it is all text data.
 Some helper functions for going from document, to vector, to category etc are missing.
 Additionally depending on algorithm support for splits and shuffling needs to be implemented.
 """
-class NewsGroupDataset:
-    @gin.configurable
-    def __init__(self, shuffle=True, random_state=42, categories=[CATEGORY_COMP_WINDOWS_X, CATEGORY_COMP_SYS_MAC_HARDWARE, CATEGORY_COMP_OS_MS_WINDOWS_MISC]):
+@gin.configurable
+class NewsGroupDatasetLoader:
+    def __init__(self, shuffle=True, random_state=42, categories):
         self.shuffle = shuffle
         self.random_state = random_state
         self.categories = categories
@@ -32,7 +32,7 @@ class NewsGroupDataset:
     Loads the data from the web for the three required categories. 
     This needs revising to work with the counting pipeline.
     """
-    def load_data(self):
+    def load_dataset(self):
         self.dataset = fetch_20newsgroups(subset='all', categories=self.categories, 
                             download_if_missing=True, shuffle = self.shuffle, random_state = self.random_state)
         self.data = np.asarray(self.dataset.data)
@@ -51,6 +51,7 @@ class NewsGroupDataset:
 
     """
     Returns the vectorized data in tf-idf form. 
+    Dimensions are documents x dimensions (NxD)
     """
     def get_vectors(self):
         return self.vectors
@@ -78,15 +79,14 @@ class NewsGroupDataset:
         targetid = self.dataset.target_names.index(category)
         return self.data[self.dataset.target == targetid]
 
-    #Todo: return with labels. First round of clustering can be done directly
-    #on the vector data (unsupervised).
 
 if __name__ =="__main__":
     categories = [CATEGORY_COMP_WINDOWS_X, CATEGORY_COMP_SYS_MAC_HARDWARE]
     #, CATEGORY_COMP_OS_MS_WINDOWS_MISC]
-    setloader = NewsGroupDataset(categories=categories)
-    setloader.load_data()
-    dataset = setloader.get_dataset()
-    
-    cat_data = setloader.get_data_for_category(CATEGORY_COMP_OS_MS_WINDOWS_MISC)
+    setloader = NewsGroupDatasetLoader(categories=categories)
+    setloader.load_dataset()
+    vectors = setloader.get_vectors()
+    #1951x3345
+    print(vectors.shape)
+
 
