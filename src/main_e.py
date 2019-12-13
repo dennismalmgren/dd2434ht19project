@@ -6,7 +6,7 @@
 import utils
 import argparse
 import gin
-import svm
+from svm import SVM
 from dataloaders.newsgroupdatasetloader import NewsGroupDatasetLoader
 import kernels
 
@@ -31,6 +31,13 @@ def main():
     datasetLoader.load_dataset()
     vec = datasetLoader.get_vectors()
     print(vec.shape)
+
+    #Run svm
+    svm = SVM()
+    svm.train(vec)
+
+    #Prints parameters used during the run
+    print(gin.operative_config_str())
 
 if __name__=="__main__":
     main()

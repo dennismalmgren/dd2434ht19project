@@ -23,7 +23,7 @@ Additionally depending on algorithm support for splits and shuffling needs to be
 """
 @gin.configurable
 class NewsGroupDatasetLoader:
-    def __init__(self, shuffle=True, random_state=42, categories):
+    def __init__(self, shuffle=True, random_state=42, categories = [CATEGORY_COMP_WINDOWS_X, CATEGORY_COMP_SYS_MAC_HARDWARE, CATEGORY_COMP_OS_MS_WINDOWS_MISC]):
         self.shuffle = shuffle
         self.random_state = random_state
         self.categories = categories
