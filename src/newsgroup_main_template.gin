@@ -1,8 +1,6 @@
 #Sets up configuration for a standard experiment at E-level.
 #'linear' can be rewritten to reference code, but time ran out for this iteration.
 SVM.kernel_name='linear'
-SVM.degree=None
-SVM.num_labelled_points=None
 
 
 #The cluster kernel parameters are not used, because 
@@ -18,3 +16,5 @@ ClusterKernel.num_labelled_points=None
 NewsGroupDatasetLoader.shuffle=False #For our data set this means it's sorted on Date, which is not what we want for final trials probably.
 NewsGroupDatasetLoader.random_state=42
 NewsGroupDatasetLoader.categories=['comp.sys.mac.hardware', 'comp.os.ms-windows.misc']
+
+train_fixed_test_point_count.test_points = 987

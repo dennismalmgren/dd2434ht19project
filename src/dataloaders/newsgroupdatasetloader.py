@@ -1,6 +1,7 @@
 #Example code for clustering the dataset here: 
 # https://scikit-learn.org/stable/auto_examples/text/plot_document_clustering.html#sphx-glr-auto-examples-text-plot-document-clustering-py
 from sklearn.datasets import fetch_20newsgroups
+from sklearn.datasets import fetch_20newsgroups_vectorized
 from os import listdir
 from os.path import isfile, join
 import string
@@ -20,6 +21,8 @@ Helper class for obtaining and transforming newsgroup 20 data points.
 There is no explicit support for visualization as it is all text data.
 Some helper functions for going from document, to vector, to category etc are missing.
 Additionally depending on algorithm support for splits and shuffling needs to be implemented.
+The class can return two types of primary data objects. Documents, which are textual, or vectors, 
+which is a tdfif representation of the same documents.
 """
 @gin.configurable
 class NewsGroupDatasetLoader:
@@ -29,7 +32,7 @@ class NewsGroupDatasetLoader:
         self.categories = categories
 
     """
-    Loads the data from the web for the three required categories. 
+    Loads the data from the web for the required categories. 
     This needs revising to work with the counting pipeline.
     """
     def load_dataset(self):
@@ -42,19 +45,15 @@ class NewsGroupDatasetLoader:
         vectorizer = TfidfVectorizer(min_df=10)
         vectors = vectorizer.fit_transform(self.data)
         self.vectors = vectors
+        self.targets = self.dataset.target
+
 
     """
-    Returns the full data set
+    Returns all the data, in a tuple (input, output)
     """
-    def get_dataset(self):
-        return self.dataset
+    def get_full_dataset(self):
+        return (self.vectors, self.targets)
 
-    """
-    Returns the vectorized data in tf-idf form. 
-    Dimensions are documents x dimensions (NxD)
-    """
-    def get_vectors(self):
-        return self.vectors
 
     """
     Returns the actual text documents for a category selected 
@@ -64,18 +63,7 @@ class NewsGroupDatasetLoader:
         - category: One of CATEGORY_COMP_WINDOWS_X, CATEGORY_COMP_SYS_MAC_HARDWARE
             or CATEGORY_COMP_OS_MS_WINDOWS_MISC
     """
-    def get_data_for_category(self, category):
-        targetid = self.dataset.target_names.index(category)
-        return self.data[self.dataset.target == targetid]
-
-    """
-    Returns the documents in an individual category.
-
-    Args:
-        - category: One of CATEGORY_COMP_WINDOWS_X, CATEGORY_COMP_SYS_MAC_HARDWARE
-            or CATEGORY_COMP_OS_MS_WINDOWS_MISC
-    """
-    def get_targets_for_category(self, category):
+    def get_documents_for_category(self, category):
         targetid = self.dataset.target_names.index(category)
         return self.data[self.dataset.target == targetid]
 
@@ -85,8 +73,6 @@ if __name__ =="__main__":
     #, CATEGORY_COMP_OS_MS_WINDOWS_MISC]
     setloader = NewsGroupDatasetLoader(categories=categories)
     setloader.load_dataset()
-    vectors = setloader.get_vectors()
-    #1951x3345
-    print(vectors.shape)
+    dataset = setloader.get_full_dataset()
 
 

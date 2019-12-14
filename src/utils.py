@@ -1,4 +1,5 @@
 import os
+import sklearn.model_selection as skm
 
 """
 Module containing constants and utility functions for, e.g. data cleaning and plots.
@@ -11,6 +12,8 @@ POLY = 'poly'
 POLY_STEP = 'poly_step'
 
 
+def split(input, output, test_count):
+    return skm.train_test_split(input, output, test_size=test_count)
 
 
 """

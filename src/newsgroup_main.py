@@ -15,11 +15,23 @@ def parse_args():
     parser.add_argument(
         '--ginfile',
         default=
-        utils.get_src_folder() + '/main_e_template.gin')
+        utils.get_src_folder() + '/newsgroup_main_template.gin')
     #To be added once we manage to run experiments:
     #parser.add_argument('--experiment_folder', default='./experiments/')
     #parser.add_argument('--experiment_name', default='experiment')
     return parser.parse_args()
+
+@gin.configurable
+def train_fixed_test_point_count(datasetLoader, test_points):
+    input, output = datasetLoader.get_full_dataset()
+    (input_train, input_test, output_train, output_test) = utils.split(input, output, 987)
+    #Run svm
+    svm = SVM()
+    svm.give_training_data(input_train, output_train)
+    svm.train()
+
+    svm.give_test_data(input_test, output_test)
+
 
 def main():
     args = parse_args()
@@ -29,12 +41,10 @@ def main():
     #Now we can load the data.
     datasetLoader = NewsGroupDatasetLoader()
     datasetLoader.load_dataset()
-    vec = datasetLoader.get_vectors()
-    print(vec.shape)
+    
+    train_fixed_test_point_count(datasetLoader)
 
-    #Run svm
-    svm = SVM()
-    svm.train(vec)
+  
 
     #Prints parameters used during the run
     print(gin.operative_config_str())
