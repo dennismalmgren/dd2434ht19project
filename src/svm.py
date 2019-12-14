@@ -24,7 +24,9 @@ class SVM(object):
             self.kernel = self.linear_kernel
         elif kernel_name == 'rbf_kernel':
             self.kernel = self.rbf_kernel
-        
+        else:
+            self.kernel = self.linear_kernel
+            
         self.data_in = False
         self.data_out = False
         self.dataset1 = False
