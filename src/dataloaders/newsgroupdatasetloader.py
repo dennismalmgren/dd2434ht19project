@@ -44,7 +44,7 @@ class NewsGroupDatasetLoader:
         #an alternative would be rare word-removal (not yet implemented)
         vectorizer = TfidfVectorizer(min_df=10)
         vectors = vectorizer.fit_transform(self.data)
-        self.vectors = vectors
+        self.vectors = vectors.toarray()
         self.targets = np.asarray(self.dataset.target)
 
 
