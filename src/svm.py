@@ -27,10 +27,10 @@ class SVM(object):
         else:
             self.kernel = self.linear_kernel
 
-        self.data_in = False
-        self.data_out = False
-        self.dataset1 = False
-        self.dataset2 = False
+        self.test_data_in = False
+        self.test_data_out = False
+        self.training_data_in = False
+        self.training_data_out = False
         self.solution_found = False
 
 
@@ -52,48 +52,48 @@ class SVM(object):
         #Give the SVM a custom kernel
         self.kernel = function
 
-    def give_test_data(self, dataset1, dataset2):
+    def give_test_data(self, test_data_in, test_data_out):
         
         #Check for existing data, add accordingly
-        if self.dataset1:
-            self.dataset1 	= np.concatenate((self.dataset1, dataset1))
+        if self.test_data_in:
+            self.test_data_in 	= np.concatenate((self.test_data_in, test_data_in))
         else:
-            self.dataset1 	= dataset1
+            self.test_data_in 	= test_data_in
 
         #Check for existing data, add accordingly
-        if self.dataset2:
-            self.dataset2 	= np.concatenate((self.dataset2, dataset2))
+        if self.test_data_out:
+            self.test_data_out 	= np.concatenate((self.test_data_out, test_data_out))
         else:
-            self.dataset2 	= dataset2
+            self.test_data_out 	= test_data_out
 
-    def give_training_data(self, data_in, data_out):
+    def give_training_data(self, training_data_in, training_data_out):
         #Check that data is the same length
-        if len(data_in) != len(data_out):
+        if len(training_data_in) != len(training_data_out):
             print("Data in and Data out have different lengths.")
         
         #Check for existing data, add accordingly
-        if self.data_in:
-            self.data_in 	= np.concatenate((self.data_in, data_in))
+        if self.training_data_in:
+            self.training_data_in 	= np.concatenate((self.training_data_in, training_data_in))
         else:
-            self.data_in 	= data_in
+            self.training_data_in 	= training_data_in
 
         #Check for existing data, add accordingly
-        if self.data_out:
-            self.data_out 	= np.concatenate((self.data_out, data_out))
+        if self.training_data_out:
+            self.training_data_out 	= np.concatenate((self.training_data_out, training_data_out))
         else:
-            self.data_out 	= data_out
+            self.training_data_out 	= training_data_out
         
     def train(self):
             
         #Save constants
-        start = np.zeros(len(self.data_in))
+        start = np.zeros(len(self.training_data_in))
 
         #Calculate P
         self.calculate_P()
 
         #Determine constraints
         C = 400
-        B=[(0,C) for s in range(len(self.data_in))]
+        B=[(0,C) for s in range(len(self.training_data_in))]
         XC={'type':'eq','fun':self.zerofun}
 
         #Minimize alpha
@@ -111,15 +111,15 @@ class SVM(object):
     def calculate_P(self):
         #Check if the length is correct
         #Pre-calculate P in order to optimise the calculations later
-        P=np.zeros(shape=(len(self.data_in),len(self.data_in)))
-        for i in range(len(self.data_in)):
-            for j in range(len(self.data_in)):
-                P[i][j]=self.data_out[i]*self.data_out[j]*self.kernel(self.data_in[i],self.data_in[j])
+        P=np.zeros(shape=(len(self.training_data_in),len(self.training_data_in)))
+        for i in range(len(self.training_data_in)):
+            for j in range(len(self.training_data_in)):
+                P[i][j]=self.training_data_out[i]*self.training_data_out[j]*self.kernel(self.training_data_in[i],self.training_data_in[j])
         self.P = P
 
     def zerofun(self,alpha):
         #This was the culprit.
-        return np.dot(alpha, self.data_out) 
+        return np.dot(alpha, self.training_data_out) 
 
 
     def objective(self, alpha):
@@ -128,9 +128,9 @@ class SVM(object):
     def extract(self, alpha):
         #return [(alpha[i], x[i], y[i]) for i in range(len(x)) if abs(alpha[i]) > 10e-5]		#Changed - probably wrong
         temp = []
-        for i in range(len(self.data_in)):
+        for i in range(len(self.training_data_in)):
             if abs(alpha[i]) > 10e-5:
-                temp.append([alpha[i],self.data_in[i],self.data_out[i]])
+                temp.append([alpha[i],self.training_data_in[i],self.training_data_out[i]])
             else:
                 pass
         return np.array(temp)
@@ -144,8 +144,7 @@ class SVM(object):
     def classify_point(self,datapoint):
         if self.solution_found:
             summa = 0
-            for i in range(len(self.nonzero)):
-                #summa += alpha[i]*y[i]*kernel(np.array([pointA,pointB]),x[i])+1					#Old 
+            for i in range(len(self.nonzero)): 
                 summa += self.nonzero[i][0]*self.nonzero[i][2]*self.kernel(datapoint,self.nonzero[i][1])
             indicator = summa- self.b
             classification = np.sign(indicator)
@@ -161,6 +160,7 @@ class SVM(object):
     def classify_dataset(self,data):
         if self.solution_found:
             output = np.zeros(shape=(len(data),2))
+
             for n, datapoint in enumerate(data):
                 output[n,0] , output[n,1] = self.classify_point(datapoint)
             return output
@@ -169,15 +169,10 @@ class SVM(object):
             print("No solution was found... sry ")
 
     def analyse(self):
-        result_of_class_1 = self.classify_dataset(self.dataset1)
-        result_of_class_2 = self.classify_dataset(self.dataset2)
-
-        avg_confidence_1 = np.sum(result_of_class_1[:,1])/result_of_class_1.shape[0]
-        avg_confidence_2 = np.sum(result_of_class_2[:,1])/result_of_class_2.shape[0]
-
+        results = self.classify_dataset(self.test_data_in)
+        classifications = results[:,0]
         print("Analysis complete.")
-        print("Class 1 has the average classification confidence of", avg_confidence_1)
-        print("Class 2 has the average classification confidence of", avg_confidence_2)
+        print("Test complete. Incorrect classifications: ", np.abs(np.sum(classifications-self.test_data_out))/len(classifications))
 
         print("\nFor a more detailed description, call the function classify_dataset")
 
@@ -212,19 +207,19 @@ def generate_data():
 
 if __name__ == '__main__':
     #Generate training data
-    [nothing1, nothing2, data_in, data_out] = generate_data()
+    [_, _, training_data_in, training_data_out] = generate_data()
     #Generate test data
-    [class_pos, class_neg, nothing1, nothing2] = generate_data()
+    [_, _, test_data_in, test_data_out] = generate_data()
 
     #Initiate SVM
     svm = SVM()
     svm.set_kernel(rbf)
 
     #Train the SVM
-    svm.give_training_data(data_in, data_out)
+    svm.give_training_data(training_data_in, training_data_out)
     svm.train()
 
     #Test the SVM
-    svm.give_test_data(class_pos, class_neg)
+    svm.give_test_data(test_data_in, test_data_out)
     svm.analyse()
     
