@@ -3,6 +3,7 @@
 # for a segment of the report.
 # Not sure yet if we should split mains per dataset or not, etc.
 
+import data_utils
 import utils
 import argparse
 import gin
@@ -24,7 +25,7 @@ def parse_args():
 @gin.configurable
 def train_fixed_test_point_count(datasetLoader, test_points):
     input, output = datasetLoader.get_full_dataset()
-    (input_train, input_test, output_train, output_test) = utils.split(input, output, 987)
+    (input_train, input_test, output_train, output_test) = data_utils.split(input, output, 987)
     #Run svm
     svm = SVM()
     svm.give_training_data(input_train, output_train)
