@@ -26,13 +26,14 @@ def parse_args():
 def train_fixed_test_point_count(datasetLoader, test_points):
     input, output = datasetLoader.get_full_dataset()
     input, output = data_utils.construct_one_vs_all(input, output, 0)
-    (input_train, input_test, output_train, output_test) = data_utils.split(input, output, 987)
+    (input_train, input_test, output_train, output_test) = data_utils.split(input, output, test_points)
     #Run svm
     svm = SVM()
     svm.give_training_data(input_train, output_train)
     svm.train()
 
     svm.give_test_data(input_test, output_test)
+    svm.analyze()
 
 
 def main():
