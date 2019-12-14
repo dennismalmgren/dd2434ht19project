@@ -26,7 +26,7 @@ class SVM(object):
             self.kernel = self.rbf_kernel
         else:
             self.kernel = self.linear_kernel
-            
+
         self.data_in = False
         self.data_out = False
         self.dataset1 = False
@@ -68,7 +68,7 @@ class SVM(object):
 
     def give_training_data(self, data_in, data_out):
         #Check that data is the same length
-        if data_in.shape[0] != data_out.shape[0]:
+        if len(data_in) != len(data_out):
             print("Data in and Data out have different lengths.")
         
         #Check for existing data, add accordingly
@@ -86,14 +86,14 @@ class SVM(object):
     def train(self):
             
         #Save constants
-        start = np.zeros(self.data_in.shape[0])
+        start = np.zeros(len(self.data_in))
 
         #Calculate P
         self.calculate_P()
 
         #Determine constraints
         C = 400
-        B=[(0,C) for s in range(len(self.data_in.shape[0]))]
+        B=[(0,C) for s in range(len(self.data_in))]
         XC={'type':'eq','fun':self.zerofun}
 
         #Minimize alpha
@@ -195,10 +195,10 @@ def generate_data():
 
     #Catagorize classes
     data_out = np.concatenate( 
-        (np.ones(class_pos.shape[0]) , 
-        -np.ones(class_neg.shape[0]))) 
+        (np.ones(len(class_pos)) , 
+        -np.ones(len(class_neg)))) 
 
-    N = data_in.shape[0] # Number of rows (samples) 
+    N = len(data_in) # Number of rows (samples) 
 
     #Shuffle data
     permute=list(range(N)) 
