@@ -11,6 +11,7 @@ from utils import LINEAR
 import numpy as np
 from scipy.optimize import minimize
 
+import sklearn
 
 @gin.configurable
 class SVM(object):
@@ -21,11 +22,11 @@ class SVM(object):
         if kernel_name == 'linear_kernel':
             self.kernel = self.linear_kernel
         elif kernel_name == 'poly_kernel':
-            self.kernel = self.linear_kernel
+            self.kernel = self.poly_kernel
         elif kernel_name == 'rbf_kernel':
             self.kernel = self.rbf_kernel
         else:
-            self.kernel = self.linear_kernel
+            self.kernel = self.poly_kernel
 
         self.data_in = False
         self.data_out = False
@@ -38,12 +39,12 @@ class SVM(object):
         #Linear kernel
         return np.dot(x,y)
 
-    def poly_kernel(x,y):
+    def poly_kernel(self, x,y):
         #Polinomial kernel
         P=3
         return (np.dot(x,y)+1)**P
 
-    def rbf_kernel(x,y):
+    def rbf_kernel(self, x,y):
         #Radial basis function kernel. 
         sigma = 0.2
         return np.exp(-((np.linalg.norm(x-y))**2)/(2*(sigma**2)))
@@ -109,13 +110,22 @@ class SVM(object):
             print("No solution found.")
             
     def calculate_P(self):
+
+       # kmatrix = sklearn.metrics.pairwise.pairwise_kernels(self.data_in, self.data_in, metric=self.kernel)
+
         #Check if the length is correct
         #Pre-calculate P in order to optimise the calculations later
         P=np.zeros(shape=(len(self.data_in),len(self.data_in)))
-        for i in range(len(self.data_in)):
-            for j in range(len(self.data_in)):
-                P[i][j]=self.data_out[i]*self.data_out[j]*self.kernel(self.data_in[i],self.data_in[j])
-        self.P = P
+        P2 = np.zeros(shape=(len(self.data_in), len(self.data_in)))
+        P2 = np.outer(self.data_out, self.data_out).astype('float64')
+        mat = self.kernel(self.data_in, np.transpose(self.data_in))
+        P2 = np.multiply(P2, mat)
+#        for i in range(len(self.data_in)):
+#            rowk = self.kernel(self.data_in, self.data_in[i])
+#            P2[i, :] = np.multiply(P2[i, :], rowk)
+          #  for j in range(len(self.data_in)):
+          #      P[i][j]=self.data_out[i]*self.data_out[j]*self.kernel(self.data_in[i],self.data_in[j])
+        self.P = P2
 
     def zerofun(self,alpha):
         #This was the culprit.
