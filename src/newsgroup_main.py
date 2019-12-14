@@ -25,6 +25,7 @@ def parse_args():
 @gin.configurable
 def train_fixed_test_point_count(datasetLoader, test_points):
     input, output = datasetLoader.get_full_dataset()
+    input, output = data_utils.construct_one_vs_all(input, output, 0)
     (input_train, input_test, output_train, output_test) = data_utils.split(input, output, 987)
     #Run svm
     svm = SVM()
@@ -46,7 +47,6 @@ def main():
     train_fixed_test_point_count(datasetLoader)
 
   
-
     #Prints parameters used during the run
     print(gin.operative_config_str())
 

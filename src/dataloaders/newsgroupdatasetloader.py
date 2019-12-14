@@ -45,7 +45,7 @@ class NewsGroupDatasetLoader:
         vectorizer = TfidfVectorizer(min_df=10)
         vectors = vectorizer.fit_transform(self.data)
         self.vectors = vectors
-        self.targets = self.dataset.target
+        self.targets = np.asarray(self.dataset.target)
 
 
     """
