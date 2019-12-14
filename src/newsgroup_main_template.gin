@@ -1,6 +1,6 @@
 #Sets up configuration for a standard experiment at E-level.
 #'linear' can be rewritten to reference code, but time ran out for this iteration.
-SVM.kernel_name='linear'
+SVM.kernel_name='linear_kernel'
 
 
 #The cluster kernel parameters are not used, because 
