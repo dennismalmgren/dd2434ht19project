@@ -10,30 +10,18 @@ import gin
 from svm import SVM
 from dataloaders.newsgroupdatasetloader import NewsGroupDatasetLoader
 import kernels
+from experimentrunner import ExperimentRunner
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Perform an experiment')
     parser.add_argument(
         '--ginfile',
         default=
-        utils.get_src_folder() + '/newsgroup_main_template.gin')
+        utils.get_src_folder() + '/main_template.gin')
     #To be added once we manage to run experiments:
     #parser.add_argument('--experiment_folder', default='./experiments/')
     #parser.add_argument('--experiment_name', default='experiment')
     return parser.parse_args()
-
-@gin.configurable
-def train_fixed_test_point_count(datasetLoader, test_points):
-    input, output = datasetLoader.get_full_dataset()
-    input, output = data_utils.construct_one_vs_all(input, output, 0)
-    (input_train, input_test, output_train, output_test) = data_utils.split(input, output, test_points)
-    #Run svm
-    svm = SVM()
-    svm.give_training_data(input_train, output_train)
-    svm.train()
-
-    svm.give_test_data(input_test, output_test)
-    svm.analyze()
 
 
 def main():
@@ -41,12 +29,8 @@ def main():
     #This line sets up constructor arguments for kernels etc based on the contents of the gin file.
     gin.parse_config_file(args.ginfile)
 
-    #Now we can load the data.
-    datasetLoader = NewsGroupDatasetLoader()
-    datasetLoader.load_dataset()
-    
-    train_fixed_test_point_count(datasetLoader)
-
+    runner = ExperimentRunner()
+    runner.RunExperiment()
   
     #Prints parameters used during the run
     print(gin.operative_config_str())

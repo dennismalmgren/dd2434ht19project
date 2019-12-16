@@ -11,6 +11,11 @@ class ClusterKernel:
     def __init__(self,
                  kernel_name=LINEAR,
                  degree=None,
+                 sigma=0,
+                 cutoff_type = 'n_relative', #either n_relative or absolute
+                 r = 10, #This defines cutoff for step and poly-step.
+                 p=2, #Power for poly-step under or equal to cutoff
+                 q=2, #Power for poly-step over cutoff
                  num_labelled_points=None):
         """
         Generates a ClusterKernel of the type kernel_name.

@@ -1,0 +1,12 @@
+#Sets up configuration for a standard experiment at E-level.
+
+ExperimentRunner.experiment='single_run_newspaper'
+
+NewsGroupDatasetLoader.shuffle=False #For our data set this means it's sorted on Date, which is not what we want for final trials probably.
+NewsGroupDatasetLoader.random_state=42
+NewsGroupDatasetLoader.categories=['comp.sys.mac.hardware', 'comp.os.ms-windows.misc']
+
+SVM.kernel_name='linear_kernel' #Also support for 'poly_kernel' and 'rbf_kernel'. Our custom kernel is loaded differently.
+
+train_svm.data_limit = 200
+train_svm.test_points = 50

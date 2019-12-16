@@ -1,11 +1,22 @@
-import data_utils
 import gin
 import h5py
-import numpy
+import numpy as np
+import os
+
+"""
+Returns the path to the datasets folder based on the location of utils.py
+"""
+def get_datasets_folder():
+    scriptpath = os.path.realpath(__file__) # This refers to the utils file which needs to be in src for this to work. Should be enough for this simple project.
+    cur_dir = os.path.dirname(scriptpath)
+    base_dir = os.path.dirname(cur_dir)
+    base_dir = os.path.dirname(base_dir)
+    datasets_dir = os.path.join(base_dir, 'datasets')
+    return datasets_dir
 
 class UspsDatasetLoader:
     @gin.configurable   
-    def __init__(self, path=data_utils.get_datasets_folder() + "/usps/usps.h5"):
+    def __init__(self, path=get_datasets_folder() + "/usps/usps.h5"):
         self.path = path
 
     def load_dataset(self):
@@ -15,11 +26,11 @@ class UspsDatasetLoader:
             self.train = train
             self.test = test
 
-            X_te = test.get('data')[:]
-            y_te = test.get('target')[:]
+            self.X_te = test.get('data')[:]
+            self.y_te = test.get('target')[:]
 
-            X_tr = train.get('data')[:]
-            y_tr = train.get('target')[:]
+            self.X_tr = train.get('data')[:]
+            self.y_tr = train.get('target')[:]
 
             print('loaded')
 
@@ -28,12 +39,23 @@ class UspsDatasetLoader:
     Returns all the data, in a tuple (input, output)
     """
     def get_full_dataset(self):
-        return (self.train, self.test)
+        a1 = np.asarray([np.concatenate((self.X_tr, self.X_te))])
+        a2 = np.asarray([np.concatenate((self.y_tr, self.y_te))])
+        return (a1, a2)
+        
+    def get_training_dataset(self):
+        return (self.X_tr, self.y_tr)
+
+    def get_test_dataset(self):
+        return (self.X_te, self.y_te)
 
     def visualize(document):
         #Do nothing
         return
         
 if __name__=="__main__":
-    dataset = UspsDataset()
-    dataset.load_data()
+    dataset = UspsDatasetLoader()
+    dataset.load_dataset()
+    x, y = dataset.get_full_dataset()
+    x, y = dataset.get_training_dataset()
+    x, y = dataset.get_test_dataset()
