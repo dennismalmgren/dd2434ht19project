@@ -5,7 +5,7 @@ import sklearn.model_selection as skm
 Module containing constants and utility functions for, e.g. data cleaning and plots.
 """
 
-LINEAR = 'linear'
+LINEAR = 'linear_kernel'
 STEP = 'step'
 LINEAR_STEP = 'linear_step'
 POLY = 'poly'

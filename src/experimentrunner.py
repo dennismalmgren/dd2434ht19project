@@ -2,6 +2,8 @@ from dataloaders.newsgroupdatasetloader import NewsGroupDatasetLoader
 import gin
 import data_utils
 from svm import SVM
+import numpy as np
+from kernels import ClusterKernel
 
 @gin.configurable
 def train_svm(datasetLoader, test_points, data_limit=0):
@@ -35,9 +37,22 @@ class ExperimentRunner:
         elif self.experiment == 'figure_2':
             datasetLoader = NewsGroupDatasetLoader()
             datasetLoader.load_dataset()
+            kernel = ClusterKernel()
+            input, output = datasetLoader.get_full_dataset()
+            input, output = data_utils.construct_one_vs_all(input, output, 0)
+
+            (input_train, input_test, output_train, output_test) = data_utils.split(input, output, 768)
+            kernel_fun = kernel.kernel(input_train)
+            svm = SVM()
+            svm.set_kernel(kernel_fun)
+            svm.give_training_data(np.asarray(list(range(128))), output_train[:128])
+            svm.train()
+
+            svm.give_test_data(input_test, output_test)
+            svm.analyze()
+
             #Todo: Construct kernel for each type of kernel function.
             #Todo: Average test error over 100 random selections of labelled points, ranging from 2->128.
             #reuse the same kernel.
             #(ie 100 runs with 2, 100 runs with 4, 8, 16, 32, 64, 128)
             #Todo: Visualize and evaluate eigenvalue sizes also.
-        

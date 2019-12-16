@@ -81,7 +81,16 @@ class ClusterKernel:
         diag_lambda_L = np.diagonal(lambda_L)
         lambda_D = np.diag(1/diag_lambda_L)
         lambda_K = lambda_D**(.5) @ lambda_L @ lambda_D**(.5)
-        return lambda_K
+        def kernel_fun(x, y):
+            #Just checking x..
+            if not isinstance(x, (list, tuple, np.ndarray)):                
+                x = int(x)
+                y = int(y)
+                return lambda_K[x][y]
+            else:
+                return lambda_K[x, :][:, y] #wow easy
+
+        return kernel_fun
 
     def _rbf_kernel(self, data, sigma):
         """RBF kernel used by step 1 of the cluster kernel."""
