@@ -5,7 +5,7 @@ from functools import partial
 import numpy as np
 import gin
 from utils import LINEAR, LINEAR_STEP, STEP, POLY, POLY_STEP
-
+import numpy as np
 
 @gin.configurable
 class ClusterKernel:
@@ -14,7 +14,7 @@ class ClusterKernel:
                  degree=None,
                  sigma=.55, #used by RBF kernel
                  cutoff_type = 'n_relative', #either n_relative or absolute
-                 r = 10, #This defines cutoff for step and poly-step.
+                 r = 10, #This defines cutoff for step, linear-step and poly-step.
                  p=2, #Power for poly-step under or equal to cutoff
                  q=2, #Power for poly-step over cutoff
                  num_labelled_points=None):
@@ -28,6 +28,10 @@ class ClusterKernel:
             - num_labelled_points: required if 'poly-step' kernel is selected
         """
         self.sigma = sigma
+        self.cutoff_type = cutoff_type
+        self.r = r
+        self.p = p
+        self.q = q
         self.kernel_name = kernel_name
         self.degree = degree
         self.num_labelled_points = num_labelled_points
@@ -71,7 +75,12 @@ class ClusterKernel:
         diag_K_pow_neg_half = diag_K**(-.5)
         matrix_D_pow_neg_half = np.diag(diag_K_pow_neg_half)
         matrix_L = matrix_D_pow_neg_half @ matrix_K @ matrix_D_pow_neg_half
+
         eig_vals, eig_vecs = np.linalg.eig(matrix_L)
+        # sort eigenvalues in descending order
+        idx = eig_vals.argsort()[::-1]
+        eig_vals = eig_vals[idx]
+        eig_vecs = eig_vecs[:, idx]
 
         # Step 3
         lambda_eig_vals = tf_func(eig_vals)
@@ -102,17 +111,66 @@ class ClusterKernel:
         return np.exp(-pairwise_distance/(2*sigma**2))
 
     def _linear_tf(self, lambda_):
-        """Linear transfer function."""
+        """Linear transfer function.
+        Args :
+            - lambda_ : array of sorted eigenvalues
+        Output :
+            - lambda_ : modified array of eigenvalues"""
+
         return lambda_
 
-    def _step_tf(self, lambda_):
-        """Step transfer function."""
+    def _step_tf(self, lambda_, lambda_cut=None):
+        """Step transfer function.
+        Args :
+            - lambda_ : array of sorted eigenvalues
+            - lambda_cut : thresholding value for the eigenvalues
+                            if cutoff_type is absolute
+        Output :
+            - lambda_ :  modified array of eigenvalues"""
 
-    def _linear_step_tf(self, lambda_):
-        """Linear-step transfer function."""
+        if self.cutoff_type == 'n_relative':
+            lambda_cut = lambda_[self.r]
+        elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
+            raise ValueError('A threshold value for the eigenvalues has to be specified.')
 
-    def _poly_tf(self, lambda_, degree):
-        """Polynomial transfer function."""
+        mask = lambda_ >= lambda_cut
+        return mask.astype('float64')
 
-    def _poly_step_tf(self, lambda_, num_labelled_points):
-        """Poly-step transfer function."""
+    def _linear_step_tf(self, lambda_, lambda_cut=None):
+        """Linear-step transfer function.
+        Args :
+            - lambda_ : array of sorted eigenvalues
+            - lambda_cut : thresholding value for the eigenvalues
+                            if cutoff_type is absolute
+        Output :
+            - lambda_ : modified array of eigenvalues"""
+
+        if self.cutoff_type == 'n_relative':
+            lambda_cut = lambda_[self.r]
+        elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
+            raise ValueError('A threshold value for the eigenvalues has to be specified.')
+
+        mask_under = lambda_ < lambda_cut
+        lambda_[mask_under] = 0
+        return lambda_
+
+    def _poly_tf(self, lambda_):
+        """Polynomial transfer function.
+        Args :
+            - lambda_ : array of sorted eigenvalues
+        Output :
+            - lambda_ :  modified array of eigenvalues"""
+
+        return np.power(lambda_, self.degree)
+
+    def _poly_step_tf(self, lambda_):
+        """Poly-step transfer function.
+        Args :
+            - lambda_ : array of sorted eigenvalues
+        Output :
+            - lambda_ : modified array of eigenvalues"""
+
+        lambda_[:self.r] = np.power(lambda_[:self.r], self.p) # r first eigenvalues
+        lambda_[self.r:] = np.power(lambda_[self.r:], self.q)
+
+        return lambda_
