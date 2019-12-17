@@ -71,7 +71,12 @@ class ClusterKernel:
         diag_K_pow_neg_half = diag_K**(-.5)
         matrix_D_pow_neg_half = np.diag(diag_K_pow_neg_half)
         matrix_L = matrix_D_pow_neg_half @ matrix_K @ matrix_D_pow_neg_half
+
         eig_vals, eig_vecs = np.linalg.eig(matrix_L)
+        # sort eigenvalues in descending order
+        idx = eig_vals.argsort()[::-1]
+        eig_vals = eig_vals[idx]
+        eig_vecs = eig_vecs[:, idx]
 
         # Step 3
         lambda_eig_vals = tf_func(eig_vals)
@@ -95,11 +100,11 @@ class ClusterKernel:
     def _linear_tf(self, lambda_):
         """Linear transfer function.
         Args :
-            - lambda_ : array of eigenvalues
+            - lambda_ : array of sorted eigenvalues
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        return np.sort(lambda_)
+        return lambda_
 
     def _step_tf(self, lambda_, lambda_cut=None):
         """Step transfer function.
