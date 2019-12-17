@@ -1,0 +1,17 @@
+#Sets up configuration for a standard experiment at E-level.
+
+ExperimentRunner.experiment='figure_2' #can also be 'single_run_newspaper'
+
+NewsGroupDatasetLoader.shuffle=False #For our data set this means it's sorted on Date, which is not what we want for final trials probably.
+NewsGroupDatasetLoader.random_state=42
+NewsGroupDatasetLoader.categories=['comp.sys.mac.hardware', 'comp.os.ms-windows.misc']
+
+train_svm.test_points = 987
+
+ClusterKernel.sigma = 0.55
+ClusterKernel.degree = 5
+ClusterKernel.r = 10
+ClusterKernel.cutoff_type = 'n_relative' #or 'absolute'
+ClusterKernel.p = 0.5
+ClusterKernel.q = 2
+
