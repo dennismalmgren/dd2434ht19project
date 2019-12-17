@@ -28,6 +28,10 @@ class ClusterKernel:
             - num_labelled_points: required if 'poly-step' kernel is selected
         """
         self.sigma = sigma
+        self.cutoff_type = cutoff_type
+        self.r = r
+        self.p = p
+        self.q = q
         self.kernel_name = kernel_name
         self.degree = degree
         self.num_labelled_points = num_labelled_points
@@ -109,55 +113,51 @@ class ClusterKernel:
     def _step_tf(self, lambda_, lambda_cut=None):
         """Step transfer function.
         Args :
-            - lambda_ : array of eigenvalues
+            - lambda_ : array of sorted eigenvalues
             - lambda_cut : thresholding value for the eigenvalues
                             if cutoff_type is absolute
         Output :
             - lambda_ :  modified array of eigenvalues"""
 
-        lambda_ = np.sort(lambda_)
         if self.cutoff_type == 'n_relative':
             lambda_cut = lambda_[self.r]
         elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
             raise ValueError('A threshold value for the eigenvalues has to be specified.')
 
-        mask = lambda_>=lambda_cut
+        mask = lambda_ >= lambda_cut
         return mask.astype('float64')
 
     def _linear_step_tf(self, lambda_, lambda_cut=None):
         """Linear-step transfer function.
         Args :
-            - lambda_ : array of eigenvalues
+            - lambda_ : array of sorted eigenvalues
             - lambda_cut : thresholding value for the eigenvalues
                             if cutoff_type is absolute
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        lambda_ = np.sort(lambda_)
         if self.cutoff_type == 'n_relative':
             lambda_cut = lambda_[self.r]
         elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
             raise ValueError('A threshold value for the eigenvalues has to be specified.')
 
-        mask_over = lambda_>=lambda_cut
-        mask_under = np.bitwise_xor(True, mask)
-        lambda_[mask_under]=0
+        mask_under = lambda_ < lambda_cut
+        lambda_[mask_under] = 0
         return lambda_
 
     def _poly_tf(self, lambda_):
         """Polynomial transfer function.
         Args :
-            - lambda_ : array of eigenvalues
+            - lambda_ : array of sorted eigenvalues
         Output :
             - lambda_ :  modified array of eigenvalues"""
 
-        lambda_ = np.sort(lambda_)
         return np.power(lambda_, self.degree)
 
     def _poly_step_tf(self, lambda_):
         """Poly-step transfer function.
         Args :
-            - lambda_ : array of eigenvalues
+            - lambda_ : array of sorted eigenvalues
         Output :
             - lambda_ : modified array of eigenvalues"""
 
