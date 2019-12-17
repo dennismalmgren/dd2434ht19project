@@ -42,13 +42,22 @@ class ExperimentRunner:
             input, output = data_utils.construct_one_vs_all(input, output, 0)
 
             (input_train, input_test, output_train, output_test) = data_utils.split(input, output, 768)
-            kernel_fun = kernel.kernel(input_train)
+            kernel_fun = kernel.kernel(input)
             svm = SVM()
+
+            #Send the data and unlabeled data (testing is analysed as unlabeled data)
             svm.set_kernel(kernel_fun)
-            svm.give_training_data(np.asarray(list(range(128))), output_train[:128])
+
+            #Send the indexes of labeled training data and the labels
+            training_indexes = np.asarray(list(range(128)))
+            svm.give_training_data(training_indexes, output[0:128])
+
+            #Train the SVM.
             svm.train()
 
-            svm.give_test_data(input_test, output_test)
+            #Send the indexes of labeled testing data and the labels
+            testing_indexes = np.asarray(list(range(128,256)))
+            svm.give_test_data(testing_indexes, output[128:256])
             svm.analyze()
 
             #Todo: Construct kernel for each type of kernel function.
