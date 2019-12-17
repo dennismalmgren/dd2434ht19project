@@ -128,7 +128,7 @@ class SVM(object):
         temp = []
         for i in range(len(self.training_data_in)):
             if abs(alpha[i]) > 10e-5:
-                temp.append([alpha[i],self.training_data_in[i],self.training_data_out[i]])
+                temp.append([alpha[i],self.training_data_in[i],self.training_data_out[i],i])
             else:
                 pass
         return np.array(temp)
@@ -139,11 +139,11 @@ class SVM(object):
             summa += data[0] * data[2] * self.kernel(data[1], self.nonzero[0][1]) 
         return summa - self.nonzero[0][2]						#Changed according to equation 6
 
-    def classify_point(self,datapoint):
+    def classify_point(self,index):
         if self.solution_found:
             summa = 0
-            for i in range(len(self.nonzero)): 
-                summa += self.nonzero[i][0]*self.nonzero[i][2]*self.kernel(datapoint,self.nonzero[i][1])
+            for i in range(len(self.nonzero)):
+                summa += self.nonzero[i][0]*self.nonzero[i][2]*self.kernel(index,self.nonzero[i][3])
             indicator = summa- self.b
             classification = np.sign(indicator)
             if np.abs(indicator)>=1.0:
@@ -159,8 +159,8 @@ class SVM(object):
         if self.solution_found:
             output = np.zeros(shape=(len(data),2))
 
-            for n, datapoint in enumerate(data):
-                output[n,0] , output[n,1] = self.classify_point(datapoint)
+            for n, datapoint_index in enumerate(data):
+                output[n,0] , output[n,1] = self.classify_point(datapoint_index)
             return output
             
         else:
