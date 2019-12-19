@@ -171,8 +171,8 @@ class ClusterKernel:
             - lambda_ : modified array of eigenvalues"""
 
         indexes = lambda_.argsort()[::-1]
-        indexes_under = indexes < self.r # r first eigenvalues since indexes starts from 0
-        indexes_over = indexes >= self.r
+        indexes_under = indexes[:self.r] # r first eigenvalues
+        indexes_over = indexes[self.r:]
 
         lambda_[indexes_under] = np.power(lambda_[indexes_under], self.p)
         lambda_[indexes_over] = np.power(lambda_[indexes_over], self.q)
