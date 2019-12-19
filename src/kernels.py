@@ -4,8 +4,7 @@ Module containing the implementation of various cluster kernels.
 from functools import partial
 import numpy as np
 import gin
-from utils import LINEAR, LINEAR_STEP, STEP, POLY, POLY_STEP
-import numpy as np
+from constants import *
 
 @gin.configurable
 class ClusterKernel:
@@ -13,11 +12,12 @@ class ClusterKernel:
                  kernel_name=LINEAR,
                  degree=None,
                  sigma=.55, #used by RBF kernel
-                 cutoff_type = 'n_relative', #either n_relative or absolute
-                 r = 10, #This defines cutoff for step, linear-step and poly-step.
+                 cutoff_type=CUTOFF_RELATIVE, #either n_relative or absolute
+                 lambda_cut=None,
+                 r=10, #This defines cutoff for step, linear-step and poly-step.
                  p=2, #Power for poly-step under or equal to cutoff
-                 q=2, #Power for poly-step over cutoff
-                 num_labelled_points=None):
+                 q=2 #Power for poly-step over cutoff
+                 ):
         """
         Generates a ClusterKernel of the type kernel_name.
         To compute the kernel for data X, call obj.kernel(X)
@@ -29,12 +29,12 @@ class ClusterKernel:
         """
         self.sigma = sigma
         self.cutoff_type = cutoff_type
+        self.lambda_cut = lambda_cut
         self.r = r
         self.p = p
         self.q = q
         self.kernel_name = kernel_name
         self.degree = degree
-        self.num_labelled_points = num_labelled_points
         self.kernel_func = self._get_kernel_func()
 
         self.kernel = partial(self._compute_kernel, self.kernel_func)
@@ -55,12 +55,11 @@ class ClusterKernel:
                     f'The "degree" parameter must be provided for a {POLY} kernel'
                 )
             return partial(selected_kernel, self.degree)
-        if self.kernel_name == POLY_STEP:
-            if not self.num_labelled_points:
-                raise ValueError(
-                    f'The "num_labelled_points" parameter must be provided for a {POLY_STEP} kernel'
-                )
-            return partial(selected_kernel, self.num_labelled_points)
+        if self.cutoff_type == CUTOFF_ABSOLUTE and self.lambda_cut is None:
+            raise ValueError(
+                'The "lambda_cut" parameter must be provided for step kernels'
+                'if the "cutoff_type" is absolute"'
+            )
         return selected_kernel
 
     def _compute_kernel(self, tf_func, data):
@@ -119,56 +118,45 @@ class ClusterKernel:
 
         return lambda_
 
-    def get_larger_eigenvalues(self, lambda_, lambda_cut=None):
-        """Access the corresponding eigenvalues.
+    def get_larger_eigenvalues(self, lambda_):
+        """Given an array of eigenvalues, return the indices corresponding to
+        the eigenvalues above and below the threshold.
         Args :
             - lambda_ : array of eigenvalues
-            - lambda_cut : thresholding value for the eigenvalues
-                            if cutoff_type is absolute
         Output :
             - mask_over :  indexes of the array corresponding to the higher eigenvalues
             - mask_under :  indexes of the array corresponding to the lower eigenvalues"""
 
-        if self.cutoff_type == 'n_relative':
-            indexes = lambda_.argsort()[::-1]
-            mask_over = indexes[:self.r]
-            mask_under = indexes[self.r:]
-            return mask_over, mask_under
+        if self.cutoff_type == CUTOFF_RELATIVE:
+            self.lambda_cut = sorted(lambda_, reverse=True)[self.r]
 
-        elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
-            raise ValueError('A threshold value for the eigenvalues has to be specified.')
-
-        mask_over = lambda_ >= lambda_cut
-        mask_under = lambda_ < lambda_cut
+        mask_over = lambda_ >= self.lambda_cut
+        mask_under = lambda_ < self.lambda_cut
 
         return mask_over, mask_under
 
 
-    def _step_tf(self, lambda_, lambda_cut=None):
+    def _step_tf(self, lambda_):
         """Step transfer function.
         Args :
             - lambda_ : array of eigenvalues
-            - lambda_cut : thresholding value for the eigenvalues
-                            if cutoff_type is absolute
         Output :
             - lambda_ :  modified array of eigenvalues"""
 
-        mask_over, mask_under = get_larger_eigenvalues(self, lambda_, lambda_cut)
+        mask_over, mask_under = self.get_larger_eigenvalues(lambda_)
         lambda_[mask_over] = 1.
         lambda_[mask_under] = 0.
 
         return lambda_
 
-    def _linear_step_tf(self, lambda_, lambda_cut=None):
+    def _linear_step_tf(self, lambda_):
         """Linear-step transfer function.
         Args :
             - lambda_ : array of eigenvalues
-            - lambda_cut : thresholding value for the eigenvalues
-                            if cutoff_type is absolute
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        mask_over, mask_under = get_larger_eigenvalues(self, lambda_, lambda_cut)
+        _, mask_under = self.get_larger_eigenvalues(lambda_)
         lambda_[mask_under] = 0.
         return lambda_
 
@@ -188,7 +176,7 @@ class ClusterKernel:
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        indexes_over, indexes_under = get_larger_eigenvalues(self, lambda_, lambda_cut)
+        indexes_over, indexes_under = self.get_larger_eigenvalues(lambda_)
 
         lambda_[indexes_under] = np.power(lambda_[indexes_under], self.q)
         lambda_[indexes_over] = np.power(lambda_[indexes_over], self.p)
