@@ -78,9 +78,9 @@ class ClusterKernel:
 
         eig_vals, eig_vecs = np.linalg.eig(matrix_L)
         # sort eigenvalues in descending order
-        idx = eig_vals.argsort()[::-1]
-        eig_vals = eig_vals[idx]
-        eig_vecs = eig_vecs[:, idx]
+        # idx = eig_vals.argsort()[::-1]
+        # eig_vals = eig_vals[idx]
+        # eig_vecs = eig_vecs[:, idx]
 
         # Step 3
         lambda_eig_vals = tf_func(eig_vals)
@@ -92,7 +92,7 @@ class ClusterKernel:
         lambda_K = lambda_D**(.5) @ lambda_L @ lambda_D**(.5)
         def kernel_fun(x, y):
             #Just checking x..
-            if not isinstance(x, (list, tuple, np.ndarray)):                
+            if not isinstance(x, (list, tuple, np.ndarray)):
                 x = int(x)
                 y = int(y)
                 return lambda_K[x][y]
@@ -170,7 +170,11 @@ class ClusterKernel:
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        lambda_[:self.r] = np.power(lambda_[:self.r], self.p) # r first eigenvalues
-        lambda_[self.r:] = np.power(lambda_[self.r:], self.q)
+        indexes = lambda_.argsort()[::-1]
+        indexes_under = indexes < self.r # r first eigenvalues since indexes starts from 0
+        indexes_over = indexes >= self.r
+
+        lambda_[indexes_under] = np.power(lambda_[indexes_under], self.p)
+        lambda_[indexes_over] = np.power(lambda_[indexes_over], self.q)
 
         return lambda_
