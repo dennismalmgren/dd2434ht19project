@@ -22,11 +22,8 @@ class ClusterKernel:
         Generates a ClusterKernel of the type kernel_name.
         To compute the kernel for data X, call obj.kernel(X)
         where obj is the name of the ClusterKernel instance.
-
-        Args:
-            - degree: required if 'poly' kernel is selected
-            - num_labelled_points: required if 'poly-step' kernel is selected
         """
+        self.eps = np.finfo(float).eps
         self.sigma = sigma
         self.cutoff_type = cutoff_type
         self.lambda_cut = lambda_cut
@@ -76,19 +73,19 @@ class ClusterKernel:
         matrix_L = matrix_D_pow_neg_half @ matrix_K @ matrix_D_pow_neg_half
 
         eig_vals, eig_vecs = np.linalg.eig(matrix_L)
-        # sort eigenvalues in descending order
-        # idx = eig_vals.argsort()[::-1]
-        # eig_vals = eig_vals[idx]
-        # eig_vecs = eig_vecs[:, idx]
+        # print(f'eigenvalues before: {eig_vals}')
 
         # Step 3
         lambda_eig_vals = tf_func(eig_vals)
+        # print(f'eigenvalues after: {lambda_eig_vals}')
         lambda_L = eig_vecs @ np.diag(lambda_eig_vals) @ eig_vecs.T
+        # print(f'lambda L: {lambda_L}')
 
         # Step 4
         diag_lambda_L = np.diagonal(lambda_L)
         lambda_D = np.diag(1/diag_lambda_L)
         lambda_K = lambda_D**(.5) @ lambda_L @ lambda_D**(.5)
+        # print(lambda_K)
         def kernel_fun(x, y):
             #Just checking x..
             if not isinstance(x, (list, tuple, np.ndarray)):
@@ -145,7 +142,7 @@ class ClusterKernel:
 
         mask_over, mask_under = self.get_larger_eigenvalues(lambda_)
         lambda_[mask_over] = 1.
-        lambda_[mask_under] = 0.
+        lambda_[mask_under] = self.eps
 
         return lambda_
 
@@ -157,7 +154,7 @@ class ClusterKernel:
             - lambda_ : modified array of eigenvalues"""
 
         _, mask_under = self.get_larger_eigenvalues(lambda_)
-        lambda_[mask_under] = 0.
+        lambda_[mask_under] = self.eps
         return lambda_
 
     def _poly_tf(self, lambda_):
