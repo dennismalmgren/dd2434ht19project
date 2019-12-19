@@ -113,51 +113,69 @@ class ClusterKernel:
     def _linear_tf(self, lambda_):
         """Linear transfer function.
         Args :
-            - lambda_ : array of sorted eigenvalues
+            - lambda_ : array of eigenvalues
         Output :
             - lambda_ : modified array of eigenvalues"""
 
         return lambda_
 
+    def get_larger_eigenvalues(self, lambda_, lambda_cut=None):
+        """Access the corresponding eigenvalues.
+        Args :
+            - lambda_ : array of eigenvalues
+            - lambda_cut : thresholding value for the eigenvalues
+                            if cutoff_type is absolute
+        Output :
+            - mask_over :  indexes of the array corresponding to the higher eigenvalues
+            - mask_under :  indexes of the array corresponding to the lower eigenvalues"""
+
+        if self.cutoff_type == 'n_relative':
+            indexes = lambda_.argsort()[::-1]
+            mask_over = indexes[:self.r]
+            mask_under = indexes[self.r:]
+            return mask_over, mask_under
+
+        elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
+            raise ValueError('A threshold value for the eigenvalues has to be specified.')
+
+        mask_over = lambda_ >= lambda_cut
+        mask_under = lambda_ < lambda_cut
+
+        return mask_over, mask_under
+
+
     def _step_tf(self, lambda_, lambda_cut=None):
         """Step transfer function.
         Args :
-            - lambda_ : array of sorted eigenvalues
+            - lambda_ : array of eigenvalues
             - lambda_cut : thresholding value for the eigenvalues
                             if cutoff_type is absolute
         Output :
             - lambda_ :  modified array of eigenvalues"""
 
-        if self.cutoff_type == 'n_relative':
-            lambda_cut = lambda_[self.r]
-        elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
-            raise ValueError('A threshold value for the eigenvalues has to be specified.')
+        mask_over, mask_under = get_larger_eigenvalues(self, lambda_, lambda_cut)
+        lambda_[mask_over] = 1.
+        lambda_[mask_under] = 0.
 
-        mask = lambda_ >= lambda_cut
-        return mask.astype('float64')
+        return lambda_
 
     def _linear_step_tf(self, lambda_, lambda_cut=None):
         """Linear-step transfer function.
         Args :
-            - lambda_ : array of sorted eigenvalues
+            - lambda_ : array of eigenvalues
             - lambda_cut : thresholding value for the eigenvalues
                             if cutoff_type is absolute
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        if self.cutoff_type == 'n_relative':
-            lambda_cut = lambda_[self.r]
-        elif (self.cutoff_type == 'absolute') and (lambda_cut is None):
-            raise ValueError('A threshold value for the eigenvalues has to be specified.')
-
-        mask_under = lambda_ < lambda_cut
-        lambda_[mask_under] = 0
+        mask_over, mask_under = get_larger_eigenvalues(self, lambda_, lambda_cut)
+        lambda_[mask_under] = 0.
         return lambda_
 
     def _poly_tf(self, lambda_):
         """Polynomial transfer function.
         Args :
-            - lambda_ : array of sorted eigenvalues
+            - lambda_ : array of eigenvalues
         Output :
             - lambda_ :  modified array of eigenvalues"""
 
@@ -166,15 +184,13 @@ class ClusterKernel:
     def _poly_step_tf(self, lambda_):
         """Poly-step transfer function.
         Args :
-            - lambda_ : array of sorted eigenvalues
+            - lambda_ : array of eigenvalues
         Output :
             - lambda_ : modified array of eigenvalues"""
 
-        indexes = lambda_.argsort()[::-1]
-        indexes_under = indexes[:self.r] # r first eigenvalues
-        indexes_over = indexes[self.r:]
+        indexes_over, indexes_under = get_larger_eigenvalues(self, lambda_, lambda_cut)
 
-        lambda_[indexes_under] = np.power(lambda_[indexes_under], self.p)
-        lambda_[indexes_over] = np.power(lambda_[indexes_over], self.q)
+        lambda_[indexes_under] = np.power(lambda_[indexes_under], self.q)
+        lambda_[indexes_over] = np.power(lambda_[indexes_over], self.p)
 
         return lambda_
