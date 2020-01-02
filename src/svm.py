@@ -5,7 +5,6 @@ Module containing the implementation of svm classifier.
 """
 import gin
 from kernels import ClusterKernel
-from utils import LINEAR
 
 #Dependencies for SVM
 import numpy as np
@@ -169,10 +168,8 @@ class SVM(object):
     def analyze(self):
         results = self.classify_dataset(self.test_data_in)
         classifications = results[:,0]
-        print("Analysis complete.")
-        print("Test complete. Incorrect classifications: ", np.abs(np.sum(classifications-self.test_data_out))/len(classifications))
-
-        print("\nFor a more detailed description, call the function classify_dataset")
+        misclassification = np.abs(np.sum(classifications-self.test_data_out))/len(classifications)
+        return misclassification
 
 def rbf(x,y):
     sigma=0.4
