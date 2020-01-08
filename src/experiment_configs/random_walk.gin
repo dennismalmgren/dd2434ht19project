@@ -1,0 +1,12 @@
+#Sets up configuration for a standard experiment at E-level.
+
+ExperimentRunner.experiment='random_walk' #can also be 'single_run_newspaper'
+
+NewsGroupDatasetLoader.shuffle=False #For our data set this means it's sorted on Date, which is not what we want for final trials probably.
+NewsGroupDatasetLoader.random_state=42
+NewsGroupDatasetLoader.categories=['comp.sys.mac.hardware', 'comp.os.ms-windows.misc']
+
+MRW.k = 5
+MRW.sigma = 0.6
+MRW.precision = 1e-6
+MRW.t = 30

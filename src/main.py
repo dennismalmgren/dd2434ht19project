@@ -1,4 +1,4 @@
-# This file contains executable for the e level assignment. 
+# This file contains executable for the e level assignment.
 # It reads data based on experiment gin file and runs a set of kernels to produce output
 # for a segment of the report.
 # Not sure yet if we should split mains per dataset or not, etc.
@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument(
         '--ginfile',
         default=
-        utils.get_src_folder() + '/experiment_configs/cluster_kernel_paper_figure_2.gin')
+        utils.get_src_folder() + '/experiment_configs/random_walk.gin')
     #To be added once we manage to run experiments:
     #parser.add_argument('--experiment_folder', default='./experiments/')
     #parser.add_argument('--experiment_name', default='experiment')
@@ -31,7 +31,7 @@ def main():
 
     runner = ExperimentRunner()
     runner.RunExperiment()
-  
+
     #Prints parameters used during the run
     print(gin.operative_config_str())
 

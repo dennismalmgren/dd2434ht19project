@@ -5,7 +5,7 @@ from svm import SVM
 import numpy as np
 from kernels import ClusterKernel
 import matplotlib.pyplot as plt
-
+from markov_random_walk import MRW
 
 @gin.configurable
 def train_svm(datasetLoader, test_points, data_limit=0):
@@ -84,6 +84,44 @@ class ExperimentRunner:
                     misclassification = svm.analyze()
                     results += misclassification
                 y_results.append(results / 100)
+            plt.plot(x_results, y_results)
+            plt.show()
+
+        elif self.experiment == 'random_walk':
+            datasetLoader = NewsGroupDatasetLoader()
+            datasetLoader.load_dataset()
+            input, output = datasetLoader.get_full_dataset()
+            input, output = data_utils.construct_one_vs_all(input, output, 0)
+
+            n_labeled_points = 16
+
+            print("Starting test for ", n_labeled_points, " datapoints.")
+            results = 0
+            for i in range(100):
+                random_walk = MRW()
+
+                print("Iteration #" + str(i))
+
+                #Get the training indexes
+                training_indexes = np.asarray(list(range(128)))
+                training_targets_subset = []
+
+                #Make sure that the data has both 1 and -1
+                while 1 not in training_targets_subset or -1 not in training_targets_subset:
+                    training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
+                    training_targets_subset = output[training_indexes_subset]
+
+                #Give the data to the random_walk
+                random_walk.give_training_data(input[training_indexes_subset],training_targets_subset)# add input ?
+
+                # Adding the test values
+                testing_indexes = np.asarray(list(range(128, 256)))
+                random_walk.give_test_data(input[testing_indexes], output[128:256]) # add input ?
+
+                # CLassify the dataset
+                misclassification = random_walk.classify_dataset()
+                results += misclassification
+                y_results = results / 100
             plt.plot(x_results, y_results)
             plt.show()
 
