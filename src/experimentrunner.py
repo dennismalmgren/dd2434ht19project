@@ -7,16 +7,21 @@ from kernels import ClusterKernel
 import matplotlib.pyplot as plt
 from markov_random_walk import MRW
 
-@gin.configurable
-def train_svm(datasetLoader, test_points, data_limit=0):
-    input, output = datasetLoader.get_full_dataset()
+def get_data_up_to_limit(dataset_loader, data_limit):
+    input_, output = dataset_loader.get_full_dataset()
     if data_limit != 0:
-        input = input[:data_limit, :]
+        input_ = input_[:data_limit, :]
         output = output[:data_limit]
+    return input_, output
 
-    input, output = data_utils.construct_one_vs_all(input, output, 0)
+
+@gin.configurable
+def train_svm(dataset_loader, test_points, data_limit=0):
+    input_, output = get_data_up_to_limit(dataset_loader, data_limit)
+
+    input_, output = data_utils.construct_one_vs_all(input_, output, 0)
     (input_train, input_test, output_train, output_test) = data_utils.split(
-        input, output, test_points)
+        input_, output, test_points)
     #Run svm
     svm = SVM()
     svm.give_training_data(input_train, output_train)
@@ -34,16 +39,16 @@ class ExperimentRunner:
     def RunExperiment(self):
         if self.experiment == 'single_run_newspaper':
             #Now we can load the data.
-            datasetLoader = NewsGroupDatasetLoader()
-            datasetLoader.load_dataset()
+            dataset_loader = NewsGroupDatasetLoader()
+            dataset_loader.load_dataset()
 
-            train_svm(datasetLoader)
+            train_svm(dataset_loader)
         elif self.experiment == 'figure_2':
-            datasetLoader = NewsGroupDatasetLoader()
-            datasetLoader.load_dataset()
+            dataset_loader = NewsGroupDatasetLoader()
+            dataset_loader.load_dataset()
             kernel = ClusterKernel()
-            input, output = datasetLoader.get_full_dataset()
-            input, output = data_utils.construct_one_vs_all(input, output, 0)
+            input_, output = dataset_loader.get_full_dataset()
+            input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
             x_results = [2, 4, 8, 16, 32, 64, 128]
             y_results = []
@@ -54,7 +59,7 @@ class ExperimentRunner:
                 for i in range(100):
                     print("Iteration #" + str(i))
 
-                    kernel_fun = kernel.kernel(input)
+                    kernel_fun = kernel.kernel(input_)
                     svm = SVM()
 
                     #Send the data and unlabeled data (testing is analysed as unlabeled data)
