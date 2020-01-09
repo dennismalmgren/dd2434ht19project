@@ -123,7 +123,7 @@ def figure_2_experiment():
         print("Starting test for", n_labeled_points, "datapoints.")
         results = 0
         for i in range(100):
-            print("Iteration #" + str(i))
+            print("Iteration #" + str(1+i))
 
             kernel_fun = kernel.kernel(input_)
             svm = SVM()
