@@ -7,6 +7,11 @@ from kernels import ClusterKernel
 import matplotlib.pyplot as plt
 from markov_random_walk import MRW
 
+@gin.configurable
+def train_tsvm(dataset_loader, test_points, data_limit=0):
+    pass
+
+
 def get_data_up_to_limit(dataset_loader, data_limit):
     input_, output = dataset_loader.get_full_dataset()
     if data_limit != 0:
