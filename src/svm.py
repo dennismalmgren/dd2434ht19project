@@ -168,7 +168,8 @@ class SVM(object):
     def analyze(self):
         results = self.classify_dataset(self.test_data_in)
         classifications = results[:,0]
-        misclassification = np.abs(np.sum(classifications-self.test_data_out))/len(classifications)
+        misclassification = np.abs(np.sum(classifications-self.test_data_out))/(2*len(classifications))
+        print("Misclassification",misclassification)
         return misclassification
 
 def rbf(x,y):
