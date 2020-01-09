@@ -1,0 +1,10 @@
+#Experiment configuration for transductive SVM
+
+ExperimentRunner.experiment='transductive_svm' #can also be 'single_run_newspaper'
+
+NewsGroupDatasetLoader.shuffle=False #For our data set this means it's sorted on Date, which is not what we want for final trials probably.
+NewsGroupDatasetLoader.random_state=42
+NewsGroupDatasetLoader.categories=['comp.sys.mac.hardware', 'comp.os.ms-windows.misc']
+
+train_tsvm.num_labels = 16
+train_tsvm.num_iter = 100
