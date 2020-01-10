@@ -1,6 +1,7 @@
 from dataloaders.newsgroupdatasetloader import NewsGroupDatasetLoader
 import gin
 import data_utils
+from svm_original import SVM as SVM_original
 from svm import SVM
 import numpy as np
 from kernels import ClusterKernel
@@ -121,42 +122,44 @@ def figure_2_experiment():
 
     for n_labeled_points in x_results:
         print("Starting test for", n_labeled_points, "datapoints.")
-        results = 0
-        for i in range(100):
-            print("Iteration #" + str(1+i))
 
-            kernel_fun = kernel.kernel(input_)
-            svm = SVM()
+        kernel_fun = kernel.kernel(input_)
+        svm = SVM()
+        svm_original = SVM_original()
 
-            #Send the data and unlabeled data (testing is analysed as unlabeled data)
-            svm.set_kernel(kernel_fun)
+        #Send the data and unlabeled data (testing is analysed as unlabeled data)
+        svm.set_kernel(kernel_fun)
 
-            #Get the training indexes
-            training_indexes = np.asarray(list(range(128)))
-            training_targets_subset = []
+        #Get the training indexes
+        training_indexes = np.asarray(list(range(128)))
+        training_targets_subset = []
 
-            #Make sure that the data has both 1 and -1
-            while 1 not in training_targets_subset or -1 not in training_targets_subset:
-                training_indexes_subset = np.random.choice(
-                    training_indexes, n_labeled_points)
-                training_targets_subset = output[
-                    training_indexes_subset]
+        #Make sure that the data has both 1 and -1
+        while 1 not in training_targets_subset or -1 not in training_targets_subset:
+            training_indexes_subset = np.random.choice(
+                training_indexes, n_labeled_points)
+            training_targets_subset = output[
+                training_indexes_subset]
 
-            #Give the data to the SVM
-            svm.give_training_data(training_indexes_subset,
-                                   training_targets_subset)
+        #Give the data to the SVM
+        svm.give_training_data(training_indexes_subset,
+                               training_targets_subset)
+        svm_original.give_training_data(input_[0:n_labeled_points],
+                                        output[0:n_labeled_points])
 
-            #Train the SVM.
-            svm.train()
+        #Train the SVM.
+        svm.train()
+        svm_original.train()
 
-            #Send the indexes of labeled testing data and the labels
-            testing_indexes = np.asarray(list(range(128, 256)))
-            svm.give_test_data(testing_indexes, output[128:256])
-            misclassification = svm.analyze()
-            results += misclassification
-        y_results.append(results / 100)
-    plt.plot(x_results, y_results)
-    plt.show()
+        #Send the indexes of labeled testing data and the labels
+        testing_indexes = np.asarray(list(range(128, 256)))
+        svm.give_test_data(testing_indexes, output[128:256])
+        svm_original.give_test_data(input_[128:256], output[128:256])
+        svm.analyze()
+        svm_original.analyze()
+        #y_results.append(misclassification)
+    #plt.plot(x_results, y_results)
+    #plt.show()
 
 
 @gin.configurable
