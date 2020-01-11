@@ -213,6 +213,6 @@ class ExperimentRunner:
         elif self.method == 'transductive_svm':
             train_tsvm(dataset_loader)
 
-if __name__ == "main":
+if __name__ == "__main__":
     test = ExperimentRunner('newsgroup','cluster_kernel')
     test.RunExperiment()
