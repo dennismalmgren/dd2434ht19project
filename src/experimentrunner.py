@@ -1,4 +1,5 @@
 from dataloaders.newsgroupdatasetloader import NewsGroupDatasetLoader
+from dataloaders.uspsdatasetloader import UspsDatasetLoader
 import gin
 import data_utils
 from svm_original import SVM as SVM_original
@@ -68,9 +69,7 @@ def train_svm(dataset_loader, test_points, data_limit=0):
     svm.give_test_data(input_test, output_test)
     svm.analyze()
 
-def random_walk_experiment():
-    datasetLoader = NewsGroupDatasetLoader()
-    datasetLoader.load_dataset()
+def random_walk_experiment(dataset_loader):
     input, output = datasetLoader.get_full_dataset()
     input, output = data_utils.construct_one_vs_all(input, output, 0)
 
@@ -112,24 +111,25 @@ def random_walk_experiment():
     # plt.plot(y_results)
     # plt.show()
 
-def figure_2_experiment():
+@gin.configurable
+def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
+        num_iter=10):
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
     
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
-    x_results = [2,4,8,16,32, 64]
     y_results = []
     possible_functions = ["LINEAR", "STEP", "LINEAR_STEP", "POLY","POLY_STEP"]
     style = ["-", "--", "-.","-x", "-o"]
 
-    for n_function in range(5):
+    for n_function in range(len(possible_functions)):
         kernel = ClusterKernel(kernel_name=possible_functions[n_function], degree=3)
         y_results = []
         for n_labeled_points in x_results:
             results = 0
-            for i in range(10):
+            for i in range(num_iter):
                 print("Starting",possible_functions[n_function],"test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
 
                 solution_found = False
@@ -177,27 +177,37 @@ def figure_2_experiment():
 
 @gin.configurable
 class ExperimentRunner:
-    def __init__(self, experiment='single_run_newspaper'):
-        self.experiment = experiment
+    def __init__(self, dataset='newsgroup', method='svm'):
+        self.dataset = dataset
+        self.method = method
 
     def RunExperiment(self):
-        if self.experiment == 'single_run_newspaper':
-            #Now we can load the data.
-            dataset_loader = NewsGroupDatasetLoader()
-            dataset_loader.load_dataset()
+#       if self.experiment == 'single_run_newspaper':
+#           #Now we can load the data.
+#           dataset_loader = NewsGroupDatasetLoader()
+#           dataset_loader.load_dataset()
 
+#           train_svm(dataset_loader)
+#       elif self.experiment == 'figure_2':
+#           figure_2_experiment()
+#       elif self.experiment == 'random_walk':
+#           random_walk_experiment()
+#       elif self.experiment == 'transductive_svm':
+#           dataset_loader = NewsGroupDatasetLoader()
+#           dataset_loader.load_dataset()
+#           train_tsvm(dataset_loader)
+
+        if self.dataset == 'newsgroup':
+            dataset_loader = NewsGroupDatasetLoader()
+        elif self.dataset == 'digits':
+            dataset_loader = UspsDatasetLoader()
+        dataset_loader.load_dataset()
+
+        if self.method == 'svm':
             train_svm(dataset_loader)
-        elif self.experiment == 'figure_2':
-            figure_2_experiment()
-        elif self.experiment == 'random_walk':
-            random_walk_experiment()
-        elif self.experiment == 'transductive_svm':
-            dataset_loader = NewsGroupDatasetLoader()
-            dataset_loader.load_dataset()
+        elif self.method == 'cluster_kernel':
+            figure_2_experiment(dataset_loader)
+        elif self.method == 'random_walk':
+            random_walk_experiment(dataset_loader)
+        elif self.method == 'transductive_svm':
             train_tsvm(dataset_loader)
-
-        #Todo: Construct kernel for each type of kernel function.
-        #Todo: Average test error over 100 random selections of labelled points, ranging from 2->128.
-        #reuse the same kernel.
-        #(ie 100 runs with 2, 100 runs with 4, 8, 16, 32, 64, 128)
-        #Todo: Visualize and evaluate eigenvalue sizes also.
