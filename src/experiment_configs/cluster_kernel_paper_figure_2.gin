@@ -1,6 +1,7 @@
 #Sets up configuration for a standard experiment at E-level.
 
-ExperimentRunner.experiment='figure_2' #can also be 'single_run_newspaper'
+ExperimentRunner.dataset='newsgroup' #can also be 'digits'
+ExperimentRunner.method='cluster_kernel'
 
 NewsGroupDatasetLoader.shuffle=False #For our data set this means it's sorted on Date, which is not what we want for final trials probably.
 NewsGroupDatasetLoader.random_state=42
@@ -14,4 +15,5 @@ ClusterKernel.r = 10
 ClusterKernel.cutoff_type = 'n_relative' #or 'absolute'
 ClusterKernel.p = 0.5
 ClusterKernel.q = 2
-
+figure_2_experiment.x_results = [2, 32, 128]
+figure_2_experiment.num_iter = 1
