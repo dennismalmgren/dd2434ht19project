@@ -160,7 +160,8 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
                     solution_found = svm.solution_found
 
                 #Send the indexes of labeled testing data and the labels
-                testing_indexes_subset = np.delete(training_indexes,training_indexes_subset)
+                testing_indexes = np.delete(training_indexes,training_indexes_subset)
+                testing_indexes_subset = np.random.choice(testing_indexes, 987) #The amount of test data used.
                 testing_targets_subset = output[testing_indexes_subset]
 
                 svm.give_test_data(testing_indexes_subset, testing_targets_subset)
