@@ -112,8 +112,7 @@ def random_walk_experiment(dataset_loader):
     # plt.show()
 
 @gin.configurable
-def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
-        num_iter=10):
+def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
     
@@ -123,14 +122,14 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
     y_results = []
     possible_functions = ["LINEAR", "STEP", "LINEAR_STEP", "POLY","POLY_STEP"]
     style = ["-", "--", "-.","-x", "-o"]
-
+    plots = []
     for n_function in range(len(possible_functions)):
         kernel = ClusterKernel(kernel_name=possible_functions[n_function], degree=3)
         y_results = []
         for n_labeled_points in x_results:
             results = 0
             for i in range(num_iter):
-                print("Starting",possible_functions[n_function],"test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
+                print(possible_functions[n_function],"test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
 
                 solution_found = False
 
@@ -165,15 +164,17 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
                 testing_targets_subset = output[testing_indexes_subset]
 
                 svm.give_test_data(testing_indexes_subset, testing_targets_subset)
-
                 misclassification = svm.analyze()
 
                 results += misclassification
 
-            y_results.append(results/10)
+            y_results.append(results/num_iter)
         plt.xscale('log', basex=2)
-        plt.plot(x_results, y_results,style[n_function])
-    plt.show()
+        temp, = plt.plot(x_results, y_results,style[n_function], label=possible_functions[n_function])
+        plots.append(temp)
+    plt.legend(handles = plots)
+    #plt.show()
+    plt.savefig("figure_results.png")
 
 @gin.configurable
 class ExperimentRunner:
