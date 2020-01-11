@@ -151,7 +151,7 @@ class SVM(object):
 	def analyze(self):
 		results = self.classify_dataset(self.dataset1)
 		classifications = results[:,0]
-		misclassification = np.abs(np.sum(classifications-self.dataset2))/(2*len(classifications))
+		misclassification = np.sum(np.abs(classifications-self.dataset2))/(2*len(classifications))
 		print("Misclassification",misclassification)
 		return misclassification
 
