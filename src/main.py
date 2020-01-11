@@ -30,7 +30,7 @@ def main():
     #This line sets up constructor arguments for kernels etc based on the contents of the gin file.
     gin.parse_config_file(args.ginfile)
 
-    runner = ExperimentRunner()
+    runner = ExperimentRunner('newsgroup', 'cluster_kernel')
     runner.RunExperiment()
 
     #Prints parameters used during the run
