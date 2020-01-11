@@ -93,6 +93,7 @@ def random_walk_experiment():
                 training_indexes, n_labeled_points)
             training_targets_subset = output[training_indexes_subset]
 
+        print(training_indexes_subset)
         #Give the data to the random_walk
         random_walk.give_training_data(
             input[training_indexes_subset],
@@ -107,8 +108,9 @@ def random_walk_experiment():
         misclassification = random_walk.classify_dataset()
         results += misclassification
     y_results = results / 100
-    plt.plot(y_results)
-    plt.show()
+    print(y_results)
+    # plt.plot(y_results)
+    # plt.show()
 
 def figure_2_experiment():
     dataset_loader = NewsGroupDatasetLoader()

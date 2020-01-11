@@ -85,7 +85,7 @@ class MRW(object):
         # +1 points are assigned a proba 1 and -1 a proba 0
         # Unlabeled points are assigned a proba 0.5
         size = self.training_data_in.shape[0]+self.test_data_in.shape[0]
-        P0 = 0.5*np.ones((size, 1))
+        P0 = 0.5*np.ones((size,))
         P0[posindexes] = 1.
         P0[negindexes] = 0.
         return P0
@@ -93,7 +93,7 @@ class MRW(object):
     def compute_likelihood(self, p_0, posindexes, negindexes):
         """The computation of the posterior is made by using the EM esimation"""
         size = self.training_data_in.shape[0]+self.test_data_in.shape[0]
-        Cold = np.zeros((size, 1))
+        Cold = np.zeros((size,))
         C = p_0
         cSums = self.P.sum(axis=0)
         #Expectation Maximization step
@@ -101,9 +101,9 @@ class MRW(object):
             # update mechanism of P
             Cold=C.copy()
             Cpos=self.P*C
-            C[:,0]=Cpos.sum(axis=0)/cSums
-            C[posindex,0]=1
-            C[negindex,0]=0
+            C[:]=Cpos.sum(axis=0)/cSums
+            C[posindexes]=1
+            C[negindexes]=0
 
         return C
 
@@ -112,11 +112,10 @@ class MRW(object):
         posindexes, negindexes = self.indexes()
         p_0 = self.prior(posindexes, negindexes)
         results = self.compute_likelihood(p_0, posindexes, negindexes)
-
         classifications = np.ones(results.shape[0])
-        classifications[results<0.5]=-1
+        classifications[results[:]<0.5]=-1
 
         classifications = classifications[self.training_data_in.shape[0]:]
         misclassification = 1-np.sum(classifications == self.test_data_out)/len(classifications)
 
-        return missclassification
+        return misclassification
