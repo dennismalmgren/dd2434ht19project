@@ -115,56 +115,64 @@ def random_walk_experiment():
 def figure_2_experiment():
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
-    kernel = ClusterKernel(kernel_name="STEP")
+    
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
-    x_results = [2,4,8,16,32,64,128]
+    x_results = [2,4,8,16,32, 64]
     y_results = []
-    for n_labeled_points in x_results:
-        results = 0
-        for i in range(20):
-            print("Starting test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
+    possible_functions = ["LINEAR", "STEP", "LINEAR_STEP", "POLY","POLY_STEP"]
+    style = ["-", "--", "-.","-x", "-o"]
 
-            solution_found = False
+    for n_function in range(5):
+        kernel = ClusterKernel(kernel_name=possible_functions[n_function], degree=3)
+        y_results = []
+        for n_labeled_points in x_results:
+            results = 0
+            for i in range(10):
+                print("Starting",possible_functions[n_function],"test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
 
-            kernel_fun = kernel.kernel(input_)
+                solution_found = False
 
-            while not solution_found:
+                kernel_fun = kernel.kernel(input_)
 
-                #Send the data and unlabeled data (testing is analysed as unlabeled data)
-                svm = SVM()
-                svm.set_kernel(kernel.k)
+                while not solution_found:
 
-                #Get the training indexes
-                training_indexes = np.asarray(list(range(256)))
-                training_targets_subset = []
+                    #Send the data and unlabeled data (testing is analysed as unlabeled data)
+                    svm = SVM()
+                    svm.set_kernel(kernel.k)
 
-                #Make sure that the data has both 1 and -1
-                while 1 not in training_targets_subset or -1 not in training_targets_subset:
-                    training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
-                    training_targets_subset = output[training_indexes_subset]
+                    #Get the training indexes
+                    n_data = kernel.k.shape[0]
+                    training_indexes = np.asarray(list(range(n_data)))
+                    training_targets_subset = []
 
-                #Give the data to the SVM
-                svm.give_training_data(training_indexes_subset, training_targets_subset)
+                    #Make sure that the data has both 1 and -1
+                    while 1 not in training_targets_subset or -1 not in training_targets_subset:
+                        training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
+                        training_targets_subset = output[training_indexes_subset]
 
-                #Train the SVM.
-                svm.train()
+                    #Give the data to the SVM
+                    svm.give_training_data(training_indexes_subset, training_targets_subset)
 
-                solution_found = svm.solution_found
+                    #Train the SVM.
+                    svm.train()
 
-            #Send the indexes of labeled testing data and the labels
-            testing_indexes = np.asarray(list(range(256, 256+128)))
+                    solution_found = svm.solution_found
 
-            svm.give_test_data(testing_indexes, output[256:256+128])
+                #Send the indexes of labeled testing data and the labels
+                testing_indexes_subset = np.delete(training_indexes,training_indexes_subset)
+                testing_targets_subset = output[testing_indexes_subset]
 
-            misclassification = svm.analyze()
+                svm.give_test_data(testing_indexes_subset, testing_targets_subset)
 
-            results += misclassification
+                misclassification = svm.analyze()
 
-        y_results.append(results/20)
-    print(y_results)
-    plt.plot(x_results, y_results)
+                results += misclassification
+
+            y_results.append(results/10)
+        plt.xscale('log', basex=2)
+        plt.plot(x_results, y_results,style[n_function])
     plt.show()
 
 @gin.configurable
