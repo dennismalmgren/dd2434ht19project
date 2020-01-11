@@ -9,7 +9,7 @@ from constants import *
 @gin.configurable
 class ClusterKernel:
     def __init__(self,
-                 kernel_name=LINEAR,
+                 kernel_name="LINEAR",
                  degree=None,
                  sigma=.55, #used by RBF kernel
                  cutoff_type=CUTOFF_RELATIVE, #either n_relative or absolute
@@ -38,15 +38,15 @@ class ClusterKernel:
 
     def _get_kernel_func(self):
         kernel_name_mapping = {
-            LINEAR: self._linear_tf,
-            STEP: self._step_tf,
-            LINEAR_STEP: self._linear_step_tf,
-            POLY: self._poly_tf,
-            POLY_STEP: self._poly_step_tf
+            "LINEAR": self._linear_tf,
+            "STEP": self._step_tf,
+            "LINEAR_STEP": self._linear_step_tf,
+            "POLY": self._poly_tf,
+            "POLY_STEP": self._poly_step_tf
         }
         selected_kernel = kernel_name_mapping[self.kernel_name]
 
-        if self.kernel_name == POLY:
+        if self.kernel_name == "POLY":
             if not self.degree:
                 raise ValueError(
                     f'The "degree" parameter must be provided for a {POLY} kernel'
@@ -85,6 +85,7 @@ class ClusterKernel:
         diag_lambda_L = np.diagonal(lambda_L)
         lambda_D = np.diag(1/diag_lambda_L)
         lambda_K = lambda_D**(.5) @ lambda_L @ lambda_D**(.5)
+        self.k = lambda_K
         # print(lambda_K)
         def kernel_fun(x, y):
             #Just checking x..
