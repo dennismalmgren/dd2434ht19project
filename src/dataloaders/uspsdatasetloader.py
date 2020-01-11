@@ -2,20 +2,24 @@ import gin
 import h5py
 import numpy as np
 import os
-
 """
 Returns the path to the datasets folder based on the location of utils.py
 """
+
+
 def get_datasets_folder():
-    scriptpath = os.path.realpath(__file__) # This refers to the utils file which needs to be in src for this to work. Should be enough for this simple project.
+    scriptpath = os.path.realpath(
+        __file__
+    )  # This refers to the utils file which needs to be in src for this to work. Should be enough for this simple project.
     cur_dir = os.path.dirname(scriptpath)
     base_dir = os.path.dirname(cur_dir)
     base_dir = os.path.dirname(base_dir)
     datasets_dir = os.path.join(base_dir, 'datasets')
     return datasets_dir
 
+
 class UspsDatasetLoader:
-    @gin.configurable   
+    @gin.configurable
     def __init__(self, path=get_datasets_folder() + "/usps/usps.h5"):
         self.path = path
 
@@ -34,15 +38,15 @@ class UspsDatasetLoader:
 
             print('loaded')
 
-
     """
     Returns all the data, in a tuple (input, output)
     """
+
     def get_full_dataset(self):
-        a1 = np.asarray([np.concatenate((self.X_tr, self.X_te))])
-        a2 = np.asarray([np.concatenate((self.y_tr, self.y_te))])
+        a1 = np.concatenate((self.X_tr, self.X_te))
+        a2 = np.concatenate((self.y_tr, self.y_te))
         return (a1, a2)
-        
+
     def get_training_dataset(self):
         return (self.X_tr, self.y_tr)
 
@@ -52,8 +56,9 @@ class UspsDatasetLoader:
     def visualize(document):
         #Do nothing
         return
-        
-if __name__=="__main__":
+
+
+if __name__ == "__main__":
     dataset = UspsDatasetLoader()
     dataset.load_dataset()
     x, y = dataset.get_full_dataset()
