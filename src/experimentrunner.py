@@ -8,7 +8,7 @@ from kernels import ClusterKernel
 import matplotlib.pyplot as plt
 from markov_random_walk import MRW
 import random
-
+"""
 # Import TSVM
 import importlib
 methods = importlib.import_module("semisup-learn.methods")
@@ -16,7 +16,7 @@ from methods.scikitTSVM import SKTSVM as tsvm
 
 import warnings
 warnings.filterwarnings('ignore', category=PendingDeprecationWarning)
-
+"""
 
 @gin.configurable
 def train_tsvm(dataset_loader, num_labels=16, num_iter=100):
@@ -113,54 +113,57 @@ def random_walk_experiment():
 def figure_2_experiment():
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
-    kernel = ClusterKernel()
+    kernel = ClusterKernel(kernel_name="STEP")
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
-    x_results = [2, 4, 8, 16, 32, 64, 128]
+    x_results = [2,4,8,16,32,64,128]
     y_results = []
-
     for n_labeled_points in x_results:
-        print("Starting test for", n_labeled_points, "datapoints.")
+        results = 0
+        for i in range(20):
+            print("Starting test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
 
-        kernel_fun = kernel.kernel(input_)
-        svm = SVM()
-        svm_original = SVM_original()
+            solution_found = False
 
-        #Send the data and unlabeled data (testing is analysed as unlabeled data)
-        svm.set_kernel(kernel_fun)
+            kernel_fun = kernel.kernel(input_)
 
-        #Get the training indexes
-        training_indexes = np.asarray(list(range(128)))
-        training_targets_subset = []
+            while not solution_found:
 
-        #Make sure that the data has both 1 and -1
-        while 1 not in training_targets_subset or -1 not in training_targets_subset:
-            training_indexes_subset = np.random.choice(
-                training_indexes, n_labeled_points)
-            training_targets_subset = output[
-                training_indexes_subset]
+                #Send the data and unlabeled data (testing is analysed as unlabeled data)
+                svm = SVM()
+                svm.set_kernel(kernel.k)
 
-        #Give the data to the SVM
-        svm.give_training_data(training_indexes_subset,
-                               training_targets_subset)
-        svm_original.give_training_data(input_[0:n_labeled_points],
-                                        output[0:n_labeled_points])
+                #Get the training indexes
+                training_indexes = np.asarray(list(range(256)))
+                training_targets_subset = []
 
-        #Train the SVM.
-        svm.train()
-        svm_original.train()
+                #Make sure that the data has both 1 and -1
+                while 1 not in training_targets_subset or -1 not in training_targets_subset:
+                    training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
+                    training_targets_subset = output[training_indexes_subset]
 
-        #Send the indexes of labeled testing data and the labels
-        testing_indexes = np.asarray(list(range(128, 256)))
-        svm.give_test_data(testing_indexes, output[128:256])
-        svm_original.give_test_data(input_[128:256], output[128:256])
-        svm.analyze()
-        svm_original.analyze()
-        #y_results.append(misclassification)
-    #plt.plot(x_results, y_results)
-    #plt.show()
+                #Give the data to the SVM
+                svm.give_training_data(training_indexes_subset, training_targets_subset)
 
+                #Train the SVM.
+                svm.train()
+
+                solution_found = svm.solution_found
+
+            #Send the indexes of labeled testing data and the labels
+            testing_indexes = np.asarray(list(range(256, 256+128)))
+
+            svm.give_test_data(testing_indexes, output[256:256+128])
+
+            misclassification = svm.analyze()
+
+            results += misclassification
+
+        y_results.append(results/20)
+    print(y_results)
+    plt.plot(x_results, y_results)
+    plt.show()
 
 @gin.configurable
 class ExperimentRunner:

@@ -74,7 +74,7 @@ class SVM(object):
 			#plot(classA,classB)
 
 		else:
-			print("No solution found.")
+			print("\tNo solution found. Trying again")
 
 	def calculate_P(self):
 		#Check if the length is correct
