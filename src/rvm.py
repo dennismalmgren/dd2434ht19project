@@ -18,6 +18,7 @@ from sklearn.utils.validation import check_X_y
 
 from kernels import *
 
+# to add our kernel just create a cluster kernel and use kernel.kernel it should be a function
 class BaseRVM(BaseEstimator):
 
     """Base Relevance Vector Machine class.

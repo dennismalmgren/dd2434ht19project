@@ -115,9 +115,15 @@ def random_walk_experiment(dataset_loader):
 def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
-
+    
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
+
+    n_data = len(output)
+    all_indexes = np.asarray(list(range(n_data)))
+
+    testing_indexes = np.random.choice(all_indexes,987)
+    training_indexes = np.delete(all_indexes, testing_indexes)
 
     y_results = []
     possible_functions = ["LINEAR", "STEP", "LINEAR_STEP", "POLY","POLY_STEP"]
@@ -142,8 +148,6 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
                     svm.set_kernel(kernel.k)
 
                     #Get the training indexes
-                    n_data = kernel.k.shape[0]
-                    training_indexes = np.asarray(list(range(n_data)))
                     training_targets_subset = []
 
                     #Make sure that the data has both 1 and -1
@@ -159,11 +163,7 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
 
                     solution_found = svm.solution_found
 
-                #Send the indexes of labeled testing data and the labels
-                testing_indexes_subset = np.delete(training_indexes,training_indexes_subset)
-                testing_targets_subset = output[testing_indexes_subset]
-
-                svm.give_test_data(testing_indexes_subset, testing_targets_subset)
+                svm.give_test_data(testing_indexes, output[testing_indexes])
                 misclassification = svm.analyze()
 
                 results += misclassification
@@ -174,7 +174,7 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
         plots.append(temp)
     plt.legend(handles = plots)
     #plt.show()
-    plt.savefig("figures/figure_2_experiment_results.png")
+    plt.savefig("figure_results.png")
 
 @gin.configurable
 class ExperimentRunner:
