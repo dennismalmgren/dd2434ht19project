@@ -8,7 +8,7 @@ from kernels import ClusterKernel
 import matplotlib.pyplot as plt
 from markov_random_walk import MRW
 import random
-
+"""
 # Import TSVM
 import importlib
 methods = importlib.import_module("semisup-learn.methods")
@@ -16,7 +16,7 @@ from methods.scikitTSVM import SKTSVM as tsvm
 
 import warnings
 warnings.filterwarnings('ignore', category=PendingDeprecationWarning)
-
+"""
 
 @gin.configurable
 def train_tsvm(dataset_loader, num_labels=16, num_iter=100):
@@ -131,7 +131,7 @@ def figure_2_experiment():
             while not solution_found:
 
                 #Send the data and unlabeled data (testing is analysed as unlabeled data)
-                svm = SVM_test()
+                svm = SVM()
                 svm.set_kernel(kernel.k)
 
                 #Get the training indexes
@@ -149,7 +149,7 @@ def figure_2_experiment():
                 #Train the SVM.
                 svm.train()
 
-                solution_found = svm_test.solution_found
+                solution_found = svm.solution_found
 
             #Send the indexes of labeled testing data and the labels
             testing_indexes = np.asarray(list(range(256, 256+128)))
