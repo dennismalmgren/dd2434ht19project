@@ -42,7 +42,7 @@ class NewsGroupDatasetLoader:
         #Depending on if 2 or 3 categories are sent the dimensions change
         #however, only between 3-5k, not 7k... trying with all categories results in 18k.
         #an alternative would be rare word-removal (not yet implemented)
-        vectorizer = TfidfVectorizer(min_df=10)
+        vectorizer = TfidfVectorizer(min_df=2) #Was previously 10. Now we have more words, and closer dimension to that of the paper
         vectors = vectorizer.fit_transform(self.data)
         self.vectors = vectors.toarray()
         self.targets = np.asarray(self.dataset.target)
