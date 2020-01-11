@@ -12,12 +12,13 @@ from dataloaders.newsgroupdatasetloader import NewsGroupDatasetLoader
 import kernels
 from experimentrunner import ExperimentRunner
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Perform an experiment')
     parser.add_argument(
         '--ginfile',
-        default=
-        utils.get_src_folder() + '/experiment_configs/random_walk.gin')
+        default=utils.get_src_folder() +
+        '/experiment_configs/cluster_kernel_paper_figure_2.gin')
     #To be added once we manage to run experiments:
     #parser.add_argument('--experiment_folder', default='./experiments/')
     #parser.add_argument('--experiment_name', default='experiment')
@@ -35,5 +36,6 @@ def main():
     #Prints parameters used during the run
     print(gin.operative_config_str())
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
