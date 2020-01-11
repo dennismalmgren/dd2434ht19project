@@ -51,7 +51,6 @@ class ClusterKernel:
                 raise ValueError(
                     f'The "degree" parameter must be provided for a {POLY} kernel'
                 )
-            return partial(selected_kernel, self.degree)
         if self.cutoff_type == CUTOFF_ABSOLUTE and self.lambda_cut is None:
             raise ValueError(
                 'The "lambda_cut" parameter must be provided for step kernels'
