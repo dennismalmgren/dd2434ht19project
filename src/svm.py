@@ -24,7 +24,7 @@ class SVM(object):
             self.kernel = self.poly_kernel
         elif kernel_name == 'rbf_kernel':
             self.kernel = self.rbf_kernel
-     
+
         self.test_data_in = False
         self.test_data_out = False
         self.training_data_in = False
@@ -42,7 +42,7 @@ class SVM(object):
         return (np.dot(x,y)+1)**P
 
     def rbf_kernel(self, x,y):
-        #Radial basis function kernel. 
+        #Radial basis function kernel.
         sigma = 0.2
         return np.exp(-((np.linalg.norm(x-y))**2)/(2*(sigma**2)))
 
@@ -51,7 +51,7 @@ class SVM(object):
         self.kernel = function
 
     def give_test_data(self, test_data_in, test_data_out):
-        
+
         #Check for existing data, add accordingly
         if self.test_data_in:
             self.test_data_in 	= np.concatenate((self.test_data_in, test_data_in))
@@ -68,7 +68,7 @@ class SVM(object):
         #Check that data is the same length
         if len(training_data_in) != len(training_data_out):
             print("Data in and Data out have different lengths.")
-        
+
         #Check for existing data, add accordingly
         if self.training_data_in:
             self.training_data_in 	= np.concatenate((self.training_data_in, training_data_in))
@@ -80,9 +80,9 @@ class SVM(object):
             self.training_data_out 	= np.concatenate((self.training_data_out, training_data_out))
         else:
             self.training_data_out 	= training_data_out
-        
+
     def train(self):
-            
+
         #Save constants
         start = np.zeros(len(self.training_data_in))
 
@@ -105,7 +105,7 @@ class SVM(object):
 
         else:
             print("No solution found.")
-            
+
     def calculate_P(self):
         #Check if the length is correct
         #Pre-calculate P in order to optimise the calculations later
@@ -116,7 +116,7 @@ class SVM(object):
 
     def zerofun(self,alpha):
         #This was the culprit.
-        return np.dot(alpha, self.training_data_out) 
+        return np.dot(alpha, self.training_data_out)
 
 
     def objective(self, alpha):
@@ -135,7 +135,7 @@ class SVM(object):
     def calculateB(self):
         summa = 0
         for data in self.nonzero:
-            summa += data[0] * data[2] * self.kernel(data[1], self.nonzero[0][1]) 
+            summa += data[0] * data[2] * self.kernel(data[1], self.nonzero[0][1])
         return summa - self.nonzero[0][2]						#Changed according to equation 6
 
     def classify_point(self,index):
@@ -150,7 +150,7 @@ class SVM(object):
             else:
                 confidence = 1-(np.abs(classification-indicator)/2)
             return classification, confidence
-            
+
         else:
             print("No solution was found... sry ")
 
@@ -161,14 +161,14 @@ class SVM(object):
             for n, datapoint_index in enumerate(data):
                 output[n,0] , output[n,1] = self.classify_point(datapoint_index)
             return output
-            
+
         else:
             print("No solution was found... sry ")
 
     def analyze(self):
         results = self.classify_dataset(self.test_data_in)
         classifications = results[:,0]
-        misclassification = np.abs(np.sum(classifications-self.test_data_out))/(2*len(classifications))
+        misclassification = np.sum(np.abs(classifications-self.test_data_out))/(2*len(classifications))
         print("Misclassification",misclassification)
         return misclassification
 
@@ -182,20 +182,20 @@ def generate_data():
     class_neg = np.random.randn(20,2)*0.4+[-1,-0.5]
 
     #Combine classes into an input
-    data_in = np.concatenate((class_pos , class_neg)) 
+    data_in = np.concatenate((class_pos , class_neg))
 
     #Catagorize classes
-    data_out = np.concatenate( 
-        (np.ones(len(class_pos)) , 
-        -np.ones(len(class_neg)))) 
+    data_out = np.concatenate(
+        (np.ones(len(class_pos)) ,
+        -np.ones(len(class_neg))))
 
-    N = len(data_in) # Number of rows (samples) 
+    N = len(data_in) # Number of rows (samples)
 
     #Shuffle data
-    permute=list(range(N)) 
-    np.random.shuffle(permute) 
-    data_in = data_in[permute , :] 
-    data_out = data_out[permute] 
+    permute=list(range(N))
+    np.random.shuffle(permute)
+    data_in = data_in[permute , :]
+    data_out = data_out[permute]
 
     #Return the results
     return [class_pos,class_neg, data_in, data_out]
@@ -218,4 +218,3 @@ if __name__ == '__main__':
     #Test the SVM
     svm.give_test_data(test_data_in, test_data_out)
     svm.analyse()
-    
