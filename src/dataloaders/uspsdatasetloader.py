@@ -32,9 +32,11 @@ class UspsDatasetLoader:
 
             self.X_te = test.get('data')[:]
             self.y_te = test.get('target')[:]
+            self.y_te = self._to_binary_label(self.y_te)
 
             self.X_tr = train.get('data')[:]
             self.y_tr = train.get('target')[:]
+            self.y_tr = self._to_binary_label(self.y_tr)
 
             print('loaded')
 
@@ -53,9 +55,14 @@ class UspsDatasetLoader:
     def get_test_dataset(self):
         return (self.X_te, self.y_te)
 
-    def visualize(document):
-        #Do nothing
-        return
+    def _to_binary_label(self, labels):
+        """Transform the 10-class dataset to 2-class dataset:
+            - original label = 0-4 -> new label = 0
+            - original label = 5-9 -> new label = 1
+        """
+        labels[labels < 5] = 0
+        labels[labels >= 5] = 1
+        return labels
 
 
 if __name__ == "__main__":
