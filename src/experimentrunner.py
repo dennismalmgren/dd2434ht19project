@@ -115,7 +115,7 @@ def random_walk_experiment(dataset_loader):
 def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
-    
+
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
@@ -174,7 +174,7 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
         plots.append(temp)
     plt.legend(handles = plots)
     #plt.show()
-    plt.savefig("figure_results.png")
+    plt.savefig("figures/figure_2_experiment_results.png")
 
 @gin.configurable
 class ExperimentRunner:
@@ -212,3 +212,7 @@ class ExperimentRunner:
             random_walk_experiment(dataset_loader)
         elif self.method == 'transductive_svm':
             train_tsvm(dataset_loader)
+
+if __name__ == "main":
+    test = ExperimentRunner('newsgroup','cluster_kernel')
+    test.RunExperiment()
