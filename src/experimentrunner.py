@@ -96,18 +96,18 @@ def random_walk_experiment():
         #Give the data to the random_walk
         random_walk.give_training_data(
             input[training_indexes_subset],
-            training_targets_subset)  # add input ?
+            training_targets_subset)
 
         # Adding the test values
         testing_indexes = np.asarray(list(range(128, 256)))
         random_walk.give_test_data(input[testing_indexes],
-                                   output[128:256])  # add input ?
+                                   output[128:256])
 
         # CLassify the dataset
         misclassification = random_walk.classify_dataset()
         results += misclassification
-        y_results = results / 100
-    plt.plot(x_results, y_results)
+    y_results = results / 100
+    plt.plot(y_results)
     plt.show()
 
 def figure_2_experiment():

@@ -69,11 +69,12 @@ class MRW(object):
             for idx in indexes[i]:
                 W[i, idx] = np.exp(-d[i, idx]/self.sigma)
 
+        w = np.transpose(W)
         # Creating the A matrix
-        A = W/W.sum(axis=0)
+        A=w/w.sum(axis=1)
         At = np.linalg.matrix_power(A, self.t)
 
-        self.P = np.transpose(At) # the proba of being in k coming from i is the same as the one from going to k from i
+        self.P = At
 
     def indexes(self):
         posindexes = np.where(self.training_data_out==1)[0]
@@ -91,30 +92,18 @@ class MRW(object):
 
     def compute_likelihood(self, p_0, posindexes, negindexes):
         """The computation of the posterior is made by using the EM esimation"""
-        L = self.training_data_in.shape[0]
-
-        # E-step
-        Cold = p_0
-        C = self.P * Cold
-        # M-step
-        C = C[:,posindexes].sum(axis=1)/C[:,:L].sum(axis=1)
-        # Re-assign the known values
-        C[posindexes] = 1.
-        C[negindexes] = 0.
-        C[np.isnan(C)] = 0.5
-
-        K=0
-        while euclidean(C, Cold) > self.precision:
-            K=K+1
-            print("JE PRINT K", K)
-            Cold = C
-            C = self.P * Cold[:,np.newaxis]
-            # M-step
-            C = C[:,posindexes].sum(axis=1)/C[:,:L].sum(axis=1)
-            # Re-assign the known values
-            C[posindexes] = 1.
-            C[negindexes] = 0.
-            C[np.isnan(C)] = 0.5
+        size = self.training_data_in.shape[0]+self.test_data_in.shape[0]
+        Cold = np.zeros((size, 1))
+        C = p_0
+        cSums = self.P.sum(axis=0)
+        #Expectation Maximization step
+        while euclidean(C, Cold) > self.precision: # if tehre is significant improvement keep update of P
+            # update mechanism of P
+            Cold=C.copy()
+            Cpos=self.P*C
+            C[:,0]=Cpos.sum(axis=0)/cSums
+            C[posindex,0]=1
+            C[negindex,0]=0
 
         return C
 
@@ -125,9 +114,9 @@ class MRW(object):
         results = self.compute_likelihood(p_0, posindexes, negindexes)
 
         classifications = np.ones(results.shape[0])
-        classifications[classifications<0.5]=-1
+        classifications[results<0.5]=-1
 
         classifications = classifications[self.training_data_in.shape[0]:]
-        misclassification = np.sum(classifications == self.test_data_out)/len(classifications)
+        misclassification = 1-np.sum(classifications == self.test_data_out)/len(classifications)
 
         return missclassification
