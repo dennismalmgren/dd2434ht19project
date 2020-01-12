@@ -9,6 +9,7 @@ from kernels import ClusterKernel
 import matplotlib.pyplot as plt
 from markov_random_walk import MRW
 import random
+from rvm import BaseRVM, RVR, RVC
 """
 # Import TSVM
 import importlib
@@ -115,7 +116,7 @@ def random_walk_experiment(dataset_loader):
 def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
     dataset_loader = NewsGroupDatasetLoader()
     dataset_loader.load_dataset()
-    
+
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
@@ -176,6 +177,63 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
     #plt.show()
     plt.savefig("figure_results.png")
 
+def rvm_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
+    dataset_loader = NewsGroupDatasetLoader()
+    dataset_loader.load_dataset()
+
+    input_, output = dataset_loader.get_full_dataset()
+    input_, output = data_utils.construct_one_vs_all(input_, output, 0)
+
+    n_data = len(output)
+    all_indexes = np.asarray(list(range(n_data)))
+
+    testing_indexes = np.random.choice(all_indexes,987)
+    training_indexes = np.delete(all_indexes, testing_indexes)
+
+    y_results = []
+    possible_functions = ["LINEAR", "STEP", "LINEAR_STEP", "POLY","POLY_STEP"]
+    style = ["-", "--", "-.","-x", "-o"]
+    plots = []
+    for n_function in range(1):#len(possible_functions)):
+        # kernel = ClusterKernel(kernel_name=possible_functions[n_function], degree=3)
+        y_results = []
+        x_results = [2, 4, 8, 16, 32, 64, 128]
+        for n_labeled_points in x_results:
+            results = 0
+            for i in range(num_iter):
+                print(possible_functions[n_function],"test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
+
+                # kernel_fun = kernel.kernel(input_)
+                #Send the data and unlabeled data (testing is analysed as unlabeled data)
+                rvm = RVC()
+
+                #Get the training indexes
+                training_targets_subset = []
+
+                #Make sure that the data has both 1 and -1
+                while 1 not in training_targets_subset or -1 not in training_targets_subset:
+                    training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
+                    training_targets_subset = output[training_indexes_subset]
+
+                #Train the RVM.
+                rvm.fit(input_[training_indexes_subset], training_targets_subset)
+
+                test_data = input_[testing_indexes]
+                test_targets = output[testing_indexes]
+
+                pred = rvm.predict(test_data)
+
+                misclassification = np.sum(pred == test_targets)/987
+                results += misclassification
+                print("Misclassification: ", misclassification)
+            y_results.append(results/num_iter)
+        plt.xscale('log', basex=2)
+        temp, = plt.plot(x_results, y_results,style[n_function], label=possible_functions[n_function])
+        plots.append(temp)
+    plt.legend(handles = plots)
+    #plt.show()
+    plt.savefig("figures/figure_rvm_results.png")
+
 @gin.configurable
 class ExperimentRunner:
     def __init__(self, dataset='newsgroup', method='svm'):
@@ -202,6 +260,7 @@ class ExperimentRunner:
             dataset_loader = NewsGroupDatasetLoader()
         elif self.dataset == 'digits':
             dataset_loader = UspsDatasetLoader()
+
         dataset_loader.load_dataset()
 
         if self.method == 'svm':
@@ -212,7 +271,5 @@ class ExperimentRunner:
             random_walk_experiment(dataset_loader)
         elif self.method == 'transductive_svm':
             train_tsvm(dataset_loader)
-
-if __name__ == "__main__":
-    test = ExperimentRunner('newsgroup','cluster_kernel')
-    test.RunExperiment()
+        elif self.method == 'rvm':
+            rvm_experiment(dataset_loader)

@@ -1,5 +1,5 @@
 # all credits go to James Ritchie and Jonathan Feinberg
-# file froö their module https://github.com/JamesRitchie/scikit-rvm
+# file from their module https://github.com/JamesRitchie/scikit-rvm
 
 """Relevance Vector Machine classes for regression and classification."""
 import numpy as np
@@ -16,9 +16,7 @@ from sklearn.metrics.pairwise import (
 from sklearn.multiclass import OneVsOneClassifier
 from sklearn.utils.validation import check_X_y
 
-from kernels import *
 
-# to add our kernel just create a cluster kernel and use kernel.kernel it should be a function
 class BaseRVM(BaseEstimator):
 
     """Base Relevance Vector Machine class.
