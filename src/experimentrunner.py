@@ -112,6 +112,41 @@ def random_walk_experiment(dataset_loader):
     # plt.plot(y_results)
     # plt.show()
 
+def figure_3(dataset_loader):
+    num_test_points     =   987
+    x_results           =   list(range(30))
+    num_iter            =   5
+    n_labeled_points    =   16
+    
+    dataset_loader.load_dataset()
+
+    input_, output = dataset_loader.get_full_dataset()
+    input_, output = data_utils.construct_one_vs_all(input_, output, 0)
+
+    n_data = len(output)
+    all_indexes = np.asarray(list(range(n_data)))
+
+    testing_indexes = np.random.choice(all_indexes, num_test_points)
+    training_indexes = np.delete(all_indexes, testing_indexes)
+
+    y_results = []
+    for new_r in x_results:
+        kernel = ClusterKernel(kernel_name="POLY_STEP", degree=2, r=new_r)
+        result = 0
+        minimum = 1
+        for i in range(num_iter):
+
+            print("POLY_STEP","test for r="+ str(new_r), "Iteration #"+str(i+1))
+            misclassification = train_svm_clustered_kernel(kernel, input_,
+                                output, training_indexes, testing_indexes,
+                                n_labeled_points)
+            if misclassification < minimum:
+                result = misclassification
+
+        y_results.append(result)
+    plt.plot(x_results, y_results)
+    plt.savefig("figure_3_left.png")
+    
 @gin.configurable
 def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
         num_iter=100, num_test_points=987, fig_name='figure2_results.png'):
