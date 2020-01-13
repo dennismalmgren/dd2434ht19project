@@ -1,6 +1,8 @@
 # all credits go to James Ritchie and Jonathan Feinberg
 # file from their module https://github.com/JamesRitchie/scikit-rvm
 
+# USE https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.pairwise_kernels.html
+# TO IMPLEMENT THE COMPATIBILITY WITH OUR KERNELS
 """Relevance Vector Machine classes for regression and classification."""
 import numpy as np
 
@@ -11,7 +13,8 @@ from sklearn.base import BaseEstimator, RegressorMixin, ClassifierMixin
 from sklearn.metrics.pairwise import (
     linear_kernel,
     rbf_kernel,
-    polynomial_kernel
+    polynomial_kernel,
+    pairwise_kernels
 )
 from sklearn.multiclass import OneVsOneClassifier
 from sklearn.utils.validation import check_X_y
@@ -37,7 +40,7 @@ class BaseRVM(BaseEstimator):
         threshold_alpha=1e9,
         beta=1.e-6,
         beta_fixed=False,
-        bias_used=True,
+        bias_used=False,
         verbose=False
     ):
         """Copy params to object properties, no validation."""
@@ -78,27 +81,32 @@ class BaseRVM(BaseEstimator):
             setattr(self, parameter, value)
         return self
 
-    def _apply_kernel(self, x, y):
+    def _apply_kernel(self, matrix, indexes_x, indexes_y):
         """Apply the selected kernel function to the data."""
-        if self.kernel == 'linear':
-            phi = linear_kernel(x, y)
-        elif self.kernel == 'rbf':
-            phi = rbf_kernel(x, y, self.coef1)
-        elif self.kernel == 'poly':
-            phi = polynomial_kernel(x, y, self.degree, self.coef1, self.coef0)
-        elif callable(self.kernel):
-            phi = self.kernel(x, y)
-            if len(phi.shape) != 2:
-                raise ValueError(
-                    "Custom kernel function did not return 2D matrix"
-                )
-            if phi.shape[0] != x.shape[0]:
-                raise ValueError(
-                    "Custom kernel function did not return matrix with rows"
-                    " equal to number of data points."""
-                )
-        else:
-            raise ValueError("Kernel selection is invalid.")
+        # if self.kernel == 'linear':
+        #     phi = linear_kernel(x, y)
+        # elif self.kernel == 'rbf':
+        #     phi = rbf_kernel(x, y, self.coef1)
+        # elif self.kernel == 'poly':
+        #     phi = polynomial_kernel(x, y, self.degree, self.coef1, self.coef0)
+
+        # Adding a way to use our kernels
+        if self.kernel == 'custom':
+            phi = pairwise_kernels(matrix)
+            phi = phi[indexes_x,:][:,indexes_y]
+        # elif callable(self.kernel):
+        #     phi = self.kernel(x, y)
+        #     if len(phi.shape) != 2:
+        #         raise ValueError(
+        #             "Custom kernel function did not return 2D matrix"
+        #         )
+        #     if phi.shape[0] != x.shape[0]:
+        #         raise ValueError(
+        #             "Custom kernel function did not return matrix with rows"
+        #             " equal to number of data points."""
+        #         )
+        # else:
+        #     raise ValueError("Kernel selection is invalid.")
 
         if self.bias_used:
             phi = np.append(phi, np.ones((phi.shape[0], 1)), axis=1)
@@ -128,17 +136,18 @@ class BaseRVM(BaseEstimator):
         self.sigma_ = self.sigma_[np.ix_(keep_alpha, keep_alpha)]
         self.m_ = self.m_[keep_alpha]
 
-    def fit(self, X, y):
+    def fit(self, X, y, matrix, indexes_x):
         """Fit the RVR to the training data."""
         X, y = check_X_y(X, y)
 
         n_samples, n_features = X.shape
 
-        self.phi = self._apply_kernel(X, X)
+        self.phi = self._apply_kernel(matrix, indexes_x, indexes_x)
 
         n_basis_functions = self.phi.shape[1]
 
         self.relevance_ = X
+        self.indexes_ = indexes_x
         self.y = y
 
         self.alpha_ = self.alpha * np.ones(n_basis_functions)
@@ -158,7 +167,7 @@ class BaseRVM(BaseEstimator):
                 self.beta_ = (n_samples - np.sum(self.gamma))/(
                     np.sum((y - np.dot(self.phi, self.m_)) ** 2))
 
-            self._prune()
+            # self._prune()
 
             if self.verbose:
                 print("Iteration: {}".format(i))
@@ -266,7 +275,7 @@ class RVC(BaseRVM, ClassifierMixin):
             self._hessian(self.m_, self.alpha_, self.phi, self.t)
         )
 
-    def fit(self, X, y):
+    def fit(self, X, y, matrix, indexes_x):
         """Check target values and fit model."""
         self.classes_ = np.unique(y)
         n_classes = len(self.classes_)
@@ -276,23 +285,23 @@ class RVC(BaseRVM, ClassifierMixin):
         elif n_classes == 2:
             self.t = np.zeros(y.shape)
             self.t[y == self.classes_[1]] = 1
-            return super(RVC, self).fit(X, self.t)
+            return super(RVC, self).fit(X, self.t, matrix, indexes_x)
         else:
             self.multi_ = None
             self.multi_ = OneVsOneClassifier(self)
             self.multi_.fit(X, y)
             return self
 
-    def predict_proba(self, X):
+    def predict_proba(self, X, matrix, indexes_x):
         """Return an array of class probabilities."""
-        phi = self._apply_kernel(X, self.relevance_)
+        phi = self._apply_kernel(matrix, indexes_x, self.indexes_)
         y = self._classify(self.m_, phi)
         return np.column_stack((1-y, y))
 
-    def predict(self, X):
+    def predict(self, X, matrix, indexes_x):
         """Return an array of classes for each input."""
         if len(self.classes_) == 2:
-            y = self.predict_proba(X)
+            y = self.predict_proba(X, matrix, indexes_x)
             res = np.empty(y.shape[0], dtype=self.classes_.dtype)
             res[y[:, 1] <= 0.5] = self.classes_[0]
             res[y[:, 1] >= 0.5] = self.classes_[1]

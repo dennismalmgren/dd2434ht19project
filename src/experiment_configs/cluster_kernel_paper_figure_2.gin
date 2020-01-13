@@ -16,4 +16,4 @@ ClusterKernel.cutoff_type = 'n_relative' #or 'absolute'
 ClusterKernel.p = 0.5
 ClusterKernel.q = 2
 figure_2_experiment.x_results = [2,4,8,16,32,64,128]
-figure_2_experiment.num_iter = 100
+figure_2_experiment.num_iter = 50
