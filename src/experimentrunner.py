@@ -179,7 +179,7 @@ def train_svm_clustered_kernel(kernel, input_, output, training_indexes,
     misclassification = svm.analyze()
     return misclassification
 
-def rvm_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
+def rvm_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=50):
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 

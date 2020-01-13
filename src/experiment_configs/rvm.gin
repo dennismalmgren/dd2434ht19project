@@ -1,0 +1,11 @@
+#Sets up configuration for a standard experiment at E-level.
+
+ExperimentRunner.dataset='newsgroup'
+ExperimentRunner.method='rvm'
+
+ClusterKernel.sigma = 5
+ClusterKernel.degree = 3
+ClusterKernel.r = 10
+ClusterKernel.cutoff_type = 'n_relative' #or 'absolute'
+ClusterKernel.p = 0.5
+ClusterKernel.q = 2
