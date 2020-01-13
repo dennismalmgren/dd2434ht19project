@@ -235,21 +235,6 @@ class ExperimentRunner:
         self.method = method
 
     def RunExperiment(self):
-#       if self.experiment == 'single_run_newspaper':
-#           #Now we can load the data.
-#           dataset_loader = NewsGroupDatasetLoader()
-#           dataset_loader.load_dataset()
-
-#           train_svm(dataset_loader)
-#       elif self.experiment == 'figure_2':
-#           figure_2_experiment()
-#       elif self.experiment == 'random_walk':
-#           random_walk_experiment()
-#       elif self.experiment == 'transductive_svm':
-#           dataset_loader = NewsGroupDatasetLoader()
-#           dataset_loader.load_dataset()
-#           train_tsvm(dataset_loader)
-
         if self.dataset == 'newsgroup':
             dataset_loader = NewsGroupDatasetLoader()
         elif self.dataset == 'digits':
