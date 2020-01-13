@@ -113,17 +113,15 @@ def random_walk_experiment(dataset_loader):
     # plt.show()
 
 @gin.configurable
-def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
-    dataset_loader = NewsGroupDatasetLoader()
-    dataset_loader.load_dataset()
-
+def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
+        num_iter=100, num_test_points=987, fig_name='figure2_results.png'):
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
     n_data = len(output)
     all_indexes = np.asarray(list(range(n_data)))
 
-    testing_indexes = np.random.choice(all_indexes,987)
+    testing_indexes = np.random.choice(all_indexes, num_test_points)
     training_indexes = np.delete(all_indexes, testing_indexes)
 
     y_results = []
@@ -137,49 +135,51 @@ def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter
             results = 0
             for i in range(num_iter):
                 print(possible_functions[n_function],"test for", n_labeled_points, "datapoints.", "Iteration #"+str(i+1))
-
-                solution_found = False
-
-                kernel_fun = kernel.kernel(input_)
-
-                while not solution_found:
-
-                    #Send the data and unlabeled data (testing is analysed as unlabeled data)
-                    svm = SVM()
-                    svm.set_kernel(kernel.k)
-
-                    #Get the training indexes
-                    training_targets_subset = []
-
-                    #Make sure that the data has both 1 and -1
-                    while 1 not in training_targets_subset or -1 not in training_targets_subset:
-                        training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
-                        training_targets_subset = output[training_indexes_subset]
-
-                    #Give the data to the SVM
-                    svm.give_training_data(training_indexes_subset, training_targets_subset)
-
-                    #Train the SVM.
-                    svm.train()
-
-                    solution_found = svm.solution_found
-
-                svm.give_test_data(testing_indexes, output[testing_indexes])
-                misclassification = svm.analyze()
-
+                misclassification = train_svm_clustered_kernel(kernel, input_,
+                                    output, training_indexes, testing_indexes,
+                                    n_labeled_points)
                 results += misclassification
 
             y_results.append(results/num_iter)
         plt.xscale('log', basex=2)
-        temp, = plt.plot(x_results, y_results,style[n_function], label=possible_functions[n_function])
+        temp, = plt.plot(x_results, y_results, style[n_function], label=possible_functions[n_function])
         plots.append(temp)
-    plt.legend(handles = plots)
+    plt.legend(handles=plots)
     #plt.show()
-    plt.savefig("figures/figure_2_experiment_results.png")
+    plt.savefig(fig_name)
+
+def train_svm_clustered_kernel(kernel, input_, output, training_indexes,
+                               testing_indexes, n_labeled_points):
+    solution_found = False
+
+    kernel_fun = kernel.kernel(input_)
+
+    while not solution_found:
+
+        #Send the data and unlabeled data (testing is analysed as unlabeled data)
+        svm = SVM()
+        svm.set_kernel(kernel.k)
+
+        #Get the training indexes
+        training_targets_subset = []
+
+        #Make sure that the data has both 1 and -1
+        while 1 not in training_targets_subset or -1 not in training_targets_subset:
+            training_indexes_subset = np.random.choice(training_indexes, n_labeled_points)
+            training_targets_subset = output[training_indexes_subset]
+
+        #Give the data to the SVM
+        svm.give_training_data(training_indexes_subset, training_targets_subset)
+
+        #Train the SVM.
+        svm.train()
+
+        solution_found = svm.solution_found
+    svm.give_test_data(testing_indexes, output[testing_indexes])
+    misclassification = svm.analyze()
+    return misclassification
 
 def rvm_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128], num_iter=100):
-    dataset_loader.load_dataset()
-
     input_, output = dataset_loader.get_full_dataset()
     input_, output = data_utils.construct_one_vs_all(input_, output, 0)
 
@@ -241,21 +241,6 @@ class ExperimentRunner:
         self.method = method
 
     def RunExperiment(self):
-#       if self.experiment == 'single_run_newspaper':
-#           #Now we can load the data.
-#           dataset_loader = NewsGroupDatasetLoader()
-#           dataset_loader.load_dataset()
-
-#           train_svm(dataset_loader)
-#       elif self.experiment == 'figure_2':
-#           figure_2_experiment()
-#       elif self.experiment == 'random_walk':
-#           random_walk_experiment()
-#       elif self.experiment == 'transductive_svm':
-#           dataset_loader = NewsGroupDatasetLoader()
-#           dataset_loader.load_dataset()
-#           train_tsvm(dataset_loader)
-
         if self.dataset == 'newsgroup':
             dataset_loader = NewsGroupDatasetLoader()
         elif self.dataset == 'digits':
