@@ -1,0 +1,17 @@
+#Sets up configuration for a standard experiment at E-level.
+
+ExperimentRunner.dataset='digits'
+ExperimentRunner.method='cluster_kernel'
+
+ClusterKernel.sigma = 5
+ClusterKernel.degree = 3
+ClusterKernel.r = 10
+ClusterKernel.cutoff_type = 'n_relative' #or 'absolute'
+ClusterKernel.p = 0.5
+ClusterKernel.q = 2
+
+figure_2_experiment.x_results = [40]
+figure_2_experiment.num_iter = 50
+figure_2_experiment.fig_name = 'digits.png'
+# Num test points = total samples (9298) - training samples (2000)
+figure_2_experiment.num_test_points = 7298
