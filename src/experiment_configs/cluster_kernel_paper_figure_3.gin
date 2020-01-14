@@ -1,2 +1,2 @@
-
-#This file not complete.
+ExperimentRunner.dataset='digits'
+ExperimentRunner.method='figure_3'

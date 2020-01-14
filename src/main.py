@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument(
         '--ginfile',
         default=utils.get_src_folder() +
-        '/experiment_configs/cluster_kernel_digits.gin')
+        '/experiment_configs/cluster_kernel_paper_figure_3.gin')
     #To be added once we manage to run experiments:
     #parser.add_argument('--experiment_folder', default='./experiments/')
     #parser.add_argument('--experiment_name', default='experiment')

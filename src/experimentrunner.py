@@ -117,7 +117,7 @@ def figure_3(dataset_loader):
     x_results           =   list(range(30))
     num_iter            =   10
     n_labeled_points    =   8
-    
+
     dataset_loader.load_dataset()
 
     input_, output = dataset_loader.get_full_dataset()
@@ -145,7 +145,7 @@ def figure_3(dataset_loader):
         y_results.append(minimum)
     plt.plot(x_results, y_results)
     plt.savefig("figure_3_left.png")
-    
+
 @gin.configurable
 def figure_2_experiment(dataset_loader, x_results=[2,4,8,16,32,64,128],
         num_iter=100, num_test_points=987, fig_name='figure2_results.png'):
@@ -292,3 +292,5 @@ class ExperimentRunner:
             train_tsvm(dataset_loader)
         elif self.method == 'rvm':
             rvm_experiment(dataset_loader)
+        elif self.method == 'figure_3':
+            figure_3(dataset_loader)
