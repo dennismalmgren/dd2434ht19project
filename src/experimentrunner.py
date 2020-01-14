@@ -115,8 +115,8 @@ def random_walk_experiment(dataset_loader):
 def figure_3(dataset_loader):
     num_test_points     =   987
     x_results           =   list(range(30))
-    num_iter            =   5
-    n_labeled_points    =   16
+    num_iter            =   10
+    n_labeled_points    =   8
     
     dataset_loader.load_dataset()
 
@@ -132,7 +132,6 @@ def figure_3(dataset_loader):
     y_results = []
     for new_r in x_results:
         kernel = ClusterKernel(kernel_name="POLY_STEP", degree=2, r=new_r)
-        result = 0
         minimum = 1
         for i in range(num_iter):
 
@@ -141,9 +140,9 @@ def figure_3(dataset_loader):
                                 output, training_indexes, testing_indexes,
                                 n_labeled_points)
             if misclassification < minimum:
-                result = misclassification
+                minimum = misclassification
 
-        y_results.append(result)
+        y_results.append(minimum)
     plt.plot(x_results, y_results)
     plt.savefig("figure_3_left.png")
     
